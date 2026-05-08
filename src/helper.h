@@ -6,6 +6,9 @@
 #include <math.h>
 #include <string.h>
 
+#define SPRITELEN 16
+#define SPRITEHEIGHT 16
+
 
 typedef struct Animation{
     Texture2D texture;
