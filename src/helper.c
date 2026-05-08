@@ -53,8 +53,8 @@ void UpdateCharacterAnimation(Character* character)
 
         if (character->animation->currentFrame >= character->animation->frameNum)
         {
-            if (character->animation == character->attackAnimation) character->attacking = false;
             character->animation->currentFrame = 0; // animation restart
+            if (character->animation == character->attackAnimation) character->attacking = false;
         } 
 
         character->animation->frameRect.x = (float)character->animation->currentFrame * character->animation->frameWidth;
