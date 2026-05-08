@@ -147,24 +147,31 @@ void EnemyMovement(Character* enemy, Character* player)
     if (enemy == NULL || player == NULL) return;
 
     if (!enemy->playerDetected) return;
-
-    if (player->Postion.x + 5 > enemy->Postion.x)
+    if (enemy->attacking) EnemyAttack(enemy);
+    else if (!enemy->attacking)
     {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
-        enemy->Postion.x += 1;
-        if (enemy->rotated) enemy->rotated = false;
+        if (player->Postion.x - SPRITELEN > enemy->Postion.x)
+        {
+            enemy->Postion.x += 1;
+            enemy->walking = true;
+            if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+            if (enemy->rotated) enemy->rotated = false;
+        }
+        else if (player->Postion.x + SPRITELEN < enemy->Postion.x)
+        {
+            enemy->Postion.x -= 1;
+            enemy->walking = true;
+            if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+            if (!enemy->rotated) enemy->rotated = true;
+        }
+        else
+        {
+            enemy->attacking = true;
+            enemy->walking = false;
+            EnemyMovement(enemy,player);
+        }
     }
-    else if (player->Postion.x - 5 < enemy->Postion.x)
-    {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
-        enemy->Postion.x -= 1;
-        if (!enemy->rotated) enemy->rotated = true;
-    }
-    else
-    {
-        EnemyAttack(enemy);
-    }
-
+    if (!enemy->attacking && !enemy->walking) enemy->animation = enemy->idleAnimation;
 }
 
 void EnemyAttack(Character* enemy)
