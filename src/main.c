@@ -12,10 +12,14 @@ void EnemyAttack(Character* enemy);
 int main(void)
 {
     
+    
+        
+    InitWindow(1200,950,"My first Window");
+
+
     Character player;
     Character enemy;
-    
-    InitWindow(1200,950,"My first Window");
+
     if (InitPlayer(&player) != 0) return 1;
     if (InitEnemy(&enemy,"orc") != 0) return 1;
 
@@ -65,11 +69,13 @@ int InitPlayer(Character* player)
     Animation* idleAnimation = malloc(sizeof(Animation));
     Animation* walkingAnimation = malloc(sizeof(Animation));
     Animation* attackAnimation = malloc(sizeof(Animation));
+    Animation* hurtAnimation = malloc(sizeof(Animation));
 
     if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Idle.png",6) != 0) return 1;
     if (InitAnimation(walkingAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Walk.png",8) != 0) return 1;
     if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Attack01.png", 7) != 0) return 1;
-    if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation) != 0) return 1;
+    if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Hurt.png",4) != 0) return 1;
+    if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation, hurtAnimation) != 0) return 1;
 
     return 0;
 }
@@ -82,15 +88,18 @@ int InitEnemy(Character* enemy, char* enemyType)
     Animation* idleAnimation = malloc(sizeof(Animation));
     Animation* walkAnimation = malloc(sizeof(Animation));
     Animation* attackAnimation = malloc(sizeof(Animation));
+    Animation* hurtAnimation = malloc(sizeof(Animation));
 
-    // TODO -- ENEMY TYPES!
+    // TODO -- ENEMY TYPES!!!
 
     if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Idle.png",6) != 0) return 1;
     if (InitAnimation(walkAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Walk.png",8) != 0) return 1;
     if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Attack01.png",6) != 0) return 1;
-    if (InitCharacter(enemy,idleAnimation,walkAnimation,attackAnimation) != 0) return 1;
+    if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Hurt.png",4) != 0) return 1;
+    if (InitCharacter(enemy,idleAnimation,walkAnimation,attackAnimation,hurtAnimation) != 0) return 1;
 
     enemy->playerDetected = true;
+    enemy->enemy = true;
 
     return 0;
 
@@ -106,10 +115,12 @@ void DeinitPlayer(Character* player)
     UnloadTexture(player->idleAnimation->texture);
     UnloadTexture(player->attackAnimation->texture);
     UnloadTexture(player->walkingAnimation->texture);
+    UnloadTexture(player->hurtAnimation->texture);
     
     free(player->idleAnimation);
     free(player->attackAnimation);
     free(player->walkingAnimation);
+    free(player->hurtAnimation);
 }
 
 void PlayerMovement(Character* player)
@@ -146,7 +157,11 @@ void EnemyMovement(Character* enemy, Character* player)
 {
     if (enemy == NULL || player == NULL) return;
 
-    if (!enemy->playerDetected) return;
+    if (!enemy->playerDetected) 
+    {
+        if (enemy->animation != enemy->idleAnimation) enemy->animation = enemy->idleAnimation;
+    }
+
     if (enemy->attacking) EnemyAttack(enemy);
     else if (!enemy->attacking)
     {
@@ -154,24 +169,32 @@ void EnemyMovement(Character* enemy, Character* player)
         {
             enemy->Postion.x += 1;
             enemy->walking = true;
-            if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+            
+            if (enemy->animation != enemy->walkingAnimation)
+            {
+                enemy->animation = enemy->walkingAnimation;
+            } 
             if (enemy->rotated) enemy->rotated = false;
         }
         else if (player->Postion.x + SPRITELEN < enemy->Postion.x)
         {
             enemy->Postion.x -= 1;
             enemy->walking = true;
-            if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+            
+            if (enemy->animation != enemy->walkingAnimation)
+            {
+                enemy->animation = enemy->walkingAnimation;
+            } 
+            
             if (!enemy->rotated) enemy->rotated = true;
         }
         else
         {
             enemy->attacking = true;
             enemy->walking = false;
-            EnemyMovement(enemy,player);
+            EnemyAttack(enemy);
         }
     }
-    if (!enemy->attacking && !enemy->walking) enemy->animation = enemy->idleAnimation;
 }
 
 void EnemyAttack(Character* enemy)
