@@ -10,7 +10,7 @@ int InitAnimation(Animation* animation, const char* path, int frameNumber)
     
     animation->texture = LoadTextureFromImage(image);
     if (animation->texture.id == 0) return 1;
-    
+    animation->currentFrame = 0;
     animation->frameCounter = 0;
     // (Rectangle) is a compound literal aka a temporary struct i can create to them assign it to the frameRect
     animation->frameRect = (Rectangle){0.0f,0.0f,(float)animation->texture.width/frameNumber,(float)animation->texture.height};
@@ -23,13 +23,14 @@ int InitAnimation(Animation* animation, const char* path, int frameNumber)
 }
 
 
-int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation)
+int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation)
 {
-    if(character == NULL || idleAnimation == NULL || walkAnimation == NULL || attackAnimation == NULL) return 1;
+    if(character == NULL || idleAnimation == NULL || walkAnimation == NULL || attackAnimation == NULL || hurtAnimation == NULL) return 1;
 
     character->idleAnimation = idleAnimation;
     character->walkingAnimation = walkAnimation;
     character->attackAnimation = attackAnimation;
+    character->hurtAnimation = hurtAnimation;
     character->animation = character->idleAnimation;
     character->attacking = false;
     character->walking = false;
@@ -55,6 +56,7 @@ void UpdateCharacterAnimation(Character* character)
         {
             character->animation->currentFrame = 0; // animation restart
             if (character->animation == character->attackAnimation) character->attacking = false;
+            if (character->animation == character->hurtAnimation) character->takingDamage = false;
         } 
 
         character->animation->frameRect.x = (float)character->animation->currentFrame * character->animation->frameWidth;
@@ -76,4 +78,21 @@ void HandleCharacterRotation(Character* character)
         character->animation->frameRect.width = - character->animation ->frameRect.width;
         character->animation->rotated = false;
     }
+}
+/*
+    Damage Functions:
+        - 2 functions have to be done one for the player and another for the enemies.
+        
+
+*/
+void TakeDamage(Character* character, int damage)
+{
+    if (character == NULL) return;
+
+    if (!character->takingDamage || damage == 0) return;
+
+
+    if (character->animation != character->hurtAnimation) character->animation = character->hurtAnimation;
+    character->health -= damage;
+    printf("%d",character->health);
 }
