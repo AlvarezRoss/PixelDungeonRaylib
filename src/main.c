@@ -1,6 +1,6 @@
 
 #include "helper.h"
-
+#include "map.h"
 
 int InitPlayer(Character* player);
 void DeinitPlayer(Character* player);
@@ -11,17 +11,16 @@ void EnemyAttack(Character* enemy);
 
 int main(void)
 {
-    
-    
-        
-    InitWindow(1200,950,"My first Window");
+    Rectangle window = {0,0,950,1200};    
+    InitWindow(window.height,window.width,"My first Window");
 
-
+    TileSet* tileSet = malloc(sizeof(TileSet));
     Character player;
     Character enemy;
 
     if (InitPlayer(&player) != 0) return 1;
     if (InitEnemy(&enemy,"orc") != 0) return 1;
+    if (InitiTileSet(tileSet) != 0) return 1;
 
 
     player.Postion.y = enemy.Postion.y;
@@ -48,6 +47,7 @@ int main(void)
             DrawText("My first text",20,20,10,WHITE);
             DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
             DrawTextureRec(enemy.animation->texture,enemy.animation->frameRect,enemy.Postion,WHITE);
+            DrawRoom(tileSet,(Vector2){300,300});
         EndDrawing();
     }
 
@@ -56,6 +56,8 @@ int main(void)
     // ----------------------------------------------------------------
     DeinitPlayer(&player);
     DeinitPlayer(&enemy); // Unsure if I need to have another function for enemy characters or just rename the function
+    DeInitTileSet(tileSet);
+    tileSet = NULL;
     CloseWindow();
     
     return 0;    
