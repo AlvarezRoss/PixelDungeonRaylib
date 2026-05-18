@@ -1,5 +1,6 @@
 
 #include "helper.h"
+#include "tileson.hpp"
 
 
 int InitPlayer(Character* player);
@@ -9,19 +10,20 @@ void EnemyMovement(Character* enemy, Character* player);
 int InitEnemy(Character* enemy, char* enemyType);
 void EnemyAttack(Character* enemy);
 
-int main(void)
+int main()
 {
     
     
         
     InitWindow(1200,950,"My first Window");
 
-
+    tson::Tileson t;
     Character player;
     Character enemy;
-
+   
+    //std::unique_ptr<tson::Map> map = t.parse(fs::path("/home/martin/Documents/Dev/PixelDungeon/Assets/PixelDungeonMap1.json"));
     if (InitPlayer(&player) != 0) return 1;
-    if (InitEnemy(&enemy,"orc") != 0) return 1;
+    if (InitEnemy(&enemy,(char *)"orc") != 0) return 1;
 
 
     player.Postion.y = enemy.Postion.y;
@@ -45,9 +47,14 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(BLACK);
+            // -------------------------------------------------------------
+            //                  Draw Map
+            // -------------------------------------------------------------
+    
             DrawText("My first text",20,20,10,WHITE);
             DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
             DrawTextureRec(enemy.animation->texture,enemy.animation->frameRect,enemy.Postion,WHITE);
+            
         EndDrawing();
     }
 
@@ -66,10 +73,10 @@ int main(void)
 */
 int InitPlayer(Character* player)
 {
-    Animation* idleAnimation = malloc(sizeof(Animation));
-    Animation* walkingAnimation = malloc(sizeof(Animation));
-    Animation* attackAnimation = malloc(sizeof(Animation));
-    Animation* hurtAnimation = malloc(sizeof(Animation));
+    Animation* idleAnimation = new Animation;
+    Animation* walkingAnimation = new Animation;
+    Animation* attackAnimation = new Animation;
+    Animation* hurtAnimation = new Animation;
 
     if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Idle.png",6) != 0) return 1;
     if (InitAnimation(walkingAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Walk.png",8) != 0) return 1;
@@ -85,10 +92,10 @@ int InitEnemy(Character* enemy, char* enemyType)
     if (enemy == NULL || enemyType == NULL) return 1;
     //if (strcmp(enemyType,"") != 0) return 1;
 
-    Animation* idleAnimation = malloc(sizeof(Animation));
-    Animation* walkAnimation = malloc(sizeof(Animation));
-    Animation* attackAnimation = malloc(sizeof(Animation));
-    Animation* hurtAnimation = malloc(sizeof(Animation));
+    Animation* idleAnimation = new Animation;
+    Animation* walkAnimation = new Animation;
+    Animation* attackAnimation = new Animation;
+    Animation* hurtAnimation = new Animation;
 
     // TODO -- ENEMY TYPES!!!
 
@@ -117,10 +124,10 @@ void DeinitPlayer(Character* player)
     UnloadTexture(player->walkingAnimation->texture);
     UnloadTexture(player->hurtAnimation->texture);
     
-    free(player->idleAnimation);
-    free(player->attackAnimation);
-    free(player->walkingAnimation);
-    free(player->hurtAnimation);
+    delete(player->idleAnimation);
+    delete(player->attackAnimation);
+    delete(player->walkingAnimation);
+    delete(player->hurtAnimation);
 }
 
 void PlayerMovement(Character* player)

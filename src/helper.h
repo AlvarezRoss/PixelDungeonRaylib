@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <time.h>
+#include <memory>
 
 #define SPRITELEN 16
 #define SPRITEHEIGHT 16
