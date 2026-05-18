@@ -1,5 +1,5 @@
-CC = gcc
-CFLAGS = -Wall -std=c99
+CXX = g++
+CXXFLAGS = -Wall -std=c++17
 LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 SRC = src/main.c src/helper.c
@@ -10,9 +10,9 @@ TARGET = game
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET) $(LIBS)
+	$(CXX) $(OBJ) -o $(TARGET) $(LIBS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 clean:
 	rm -f $(OBJ) $(TARGET)
