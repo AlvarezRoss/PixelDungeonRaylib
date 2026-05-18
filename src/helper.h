@@ -49,8 +49,7 @@ typedef struct level{
     Character* enemies;
 }level;
 
-void InitGraphics(void);
-void DeinitGraphics(void);
+
 int InitAnimation(Animation* animation, const char* path, int frameNumber);
 void DeinitAnimation(Animation* animation); // DELETE MAYBE?
 int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation);
