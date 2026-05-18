@@ -21,7 +21,7 @@ int main()
     Character player;
     Character enemy;
    
-    std::unique_ptr<tson::Map> map = t.parse(fs::path("/home/martin/Documents/Dev/PixelDungeon/Assets/PixelDungeonMap1.json"));
+    //std::unique_ptr<tson::Map> map = t.parse(fs::path("/home/martin/Documents/Dev/PixelDungeon/Assets/PixelDungeonMap1.json"));
     if (InitPlayer(&player) != 0) return 1;
     if (InitEnemy(&enemy,(char *)"orc") != 0) return 1;
 
@@ -209,4 +209,11 @@ void EnemyAttack(Character* enemy)
     if (enemy == NULL) return;
 
     if (enemy->animation != enemy->attackAnimation) enemy->animation = enemy->attackAnimation;
+}
+
+void ComapnionMovement(Character* companion, Character* player)
+{
+    if (companion == NULL || player == NULL) return;
+
+    
 }
