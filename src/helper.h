@@ -11,6 +11,11 @@
 #define SPRITEHEIGHT 16
 #define ENEMIES_IN_LEVEL_ONE 5
 
+typedef enum {
+    TYPE_HEALER,
+    TYPE_TANK,
+    TYPE_DPS
+}CompanionType;
 
 typedef struct Animation{
     Texture2D texture;
@@ -30,6 +35,7 @@ typedef struct Character{
     Animation* walkingAnimation;
     Animation* attackAnimation;
     Animation* hurtAnimation;
+    CompanionType companionType;
     int speed;
     int maxHealth;
     int health;
@@ -58,4 +64,5 @@ void UpdateCharacterAnimation(Character* character);
 void HandleCharacterRotation(Character* character);
 void TakeDamage(Character* character, int damage);
 void initLevel(level* level, Character* player, Character* enemies);
+int InitCompanion(Character* companion, CompanionType type);
 #endif

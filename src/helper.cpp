@@ -96,3 +96,32 @@ void TakeDamage(Character* character, int damage)
     character->health -= damage;
     printf("%d",character->health);
 }
+
+int InitCompanion(Character* companion, CompanionType type) 
+{
+    if (companion == NULL) return 1;
+
+    Animation* walkAnimation = new Animation;
+    Animation* idleAnimation = new Animation;
+    Animation* attackAnimation = new Animation;
+    Animation* hurtAnimation = new Animation;
+
+    switch (type)
+    {
+    case TYPE_HEALER:
+        if (InitAnimation(walkAnimation,"Assets/Characters/Characters(100x100)/Priest/Priest/Priest-Walk.png",8) != 0) return 1;
+        if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Priest/Priest/Priest-Walk.png",8) != 0) return 1;
+        if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Priest/Priest/Priest-Attack.png",9) != 0) return 1;
+        if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Priest/Priest/Priest-Hurt.png",4) != 0) return 1;
+        if (InitCharacter(companion,idleAnimation,walkAnimation,attackAnimation,hurtAnimation) != 0) return 1;
+        break;
+    case TYPE_TANK:
+        break;
+    case TYPE_DPS:
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
