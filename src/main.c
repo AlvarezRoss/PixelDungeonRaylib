@@ -11,7 +11,7 @@ void EnemyAttack(Character* enemy);
 
 int main(void)
 {
-    Rectangle window = {0,0,950,1200};    
+    Rectangle window = {0,0,480,950};    
     InitWindow(window.height,window.width,"My first Window");
 
     TileSet* tileSet = malloc(sizeof(TileSet));
@@ -43,11 +43,11 @@ int main(void)
         //-----------------------------------------------------------
         
         BeginDrawing();
-            ClearBackground(BLACK);
+            ClearBackground((Color){37,19,26,255});
             DrawText("My first text",20,20,10,WHITE);
             DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
             DrawTextureRec(enemy.animation->texture,enemy.animation->frameRect,enemy.Postion,WHITE);
-            DrawRoom(tileSet,(Vector2){300,300});
+            DrawGroundLayer((Vector2){300,300},tileSet);
         EndDrawing();
     }
 
