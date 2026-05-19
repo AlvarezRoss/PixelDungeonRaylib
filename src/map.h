@@ -4,6 +4,8 @@
 #include "helper.h"
 
 #define TILESIZE 16
+#define MAPWIDTH 8
+#define MAPLEN 10
 
 
 typedef struct TileSet
@@ -13,11 +15,33 @@ typedef struct TileSet
     Rectangle tileMapSize;
 }TileSet;
 
+typedef enum ELEMENT_TYPE
+{
+    NONE,
+    DOOR_FRONT,
+    CORRIDOR,
+    FLOOR,
+    WALL_FRONT,
+    WALL_BACK,
+    WALL_SIDE
+    
+}ELEMENT_TYPE;
 
+typedef struct Element
+{
+    int initalX;
+    int finalX;
+    int initalY;
+    int finalY;
+    ELEMENT_TYPE type;
+    Rectangle src;
+    Rectangle dest;
+}Element;
 
 int InitiTileSet(TileSet* tileSet);
 void DeInitTileSet(TileSet* tileSet);
 void DrawRoom(TileSet* tileSet, Vector2 position);
+void DrawGroundLayer(Vector2 initialPosition, TileSet* tileSet);
 
 
 #endif
