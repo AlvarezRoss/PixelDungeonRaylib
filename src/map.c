@@ -2,15 +2,16 @@
 
 ELEMENT_TYPE groundLayerMatrix[MAPWIDTH][MAPLEN] = 
                                         {
-                                        {4,4,4,4,4,6,0,0,0,0},
-                                        {3,3,3,3,3,6,0,0,0,0},
-                                        {3,3,3,3,3,6,4,4,4,4},
-                                        {3,3,3,3,3,3,3,3,3,3},
-                                        {3,3,3,3,3,3,3,3,3,3},
-                                        {3,3,3,3,3,6,4,4,4,4},
-                                        {3,3,3,3,3,6,0,0,0,0},
-                                        {5,5,5,5,5,0,0,0,0,0}
+                                        {7,4,4,4,4,4,6,0,0,0,0,0},
+                                        {7,3,3,3,3,3,6,0,0,0,0,0},
+                                        {7,3,3,3,3,3,4,4,4,4,4,0},
+                                        {7,3,3,3,3,3,3,3,3,3,3,6},
+                                        {7,3,3,3,3,3,3,3,3,3,3,6},
+                                        {7,3,3,3,3,3,4,4,4,4,4,0},
+                                        {7,3,3,3,3,3,6,0,0,0,0,0},
+                                        {0,5,5,5,5,5,0,0,0,0,0,0}
                                         };
+
 
 int InitiTileSet(TileSet* tileSet)
 {
@@ -49,13 +50,14 @@ void DeInitTileSet(TileSet* tileSet)
     free(tileSet);
 }
 
-void DrawGroundLayer(Vector2 initialPosition, TileSet* tileSet)
+void DrawGroundLayer(LevelData* levelData, TileSet* tileSet)
 {
-    Vector2 currentPosition = initialPosition;
+    if (levelData == NULL || tileSet == NULL) return;
+    Vector2 currentPosition = levelData->initPosition;
 
     for (int i = 0; i < MAPWIDTH; i++)
     {
-        currentPosition.x = initialPosition.x;
+        currentPosition.x = levelData->initPosition.x;
 
         for (int g = 0; g < MAPLEN; g++)
         {
@@ -78,6 +80,10 @@ void DrawGroundLayer(Vector2 initialPosition, TileSet* tileSet)
                 element.type = WALL_BACK;
                 element.src = (Rectangle){TILESIZE,TILESIZE*5,TILESIZE,TILESIZE};
                 break;
+            case WALL_SIDE_LEFT:
+                element.type = WALL_SIDE_LEFT;
+                element.src = (Rectangle){0,0,TILESIZE,TILESIZE};
+                break;;
             case NONE:
             default:
                 currentPosition.x += TILESIZE;
@@ -91,5 +97,61 @@ void DrawGroundLayer(Vector2 initialPosition, TileSet* tileSet)
             currentPosition.x += TILESIZE;
         }
         currentPosition.y += TILESIZE; 
+        
     }
+}
+
+void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* character)
+{
+    if (levelData == NULL || tileSet == NULL || character == NULL) return;
+    Vector2 currentPosition = levelData->initPosition;
+    Element element;
+    for (int i = 0; i < MAPWIDTH; i++)
+    {
+        currentPosition.x = levelData->initPosition.x;
+
+        for (int g = 0; g < MAPLEN; g++)
+        {
+            switch (groundLayerMatrix[i][g])
+            {
+            case WALL_FRONT:
+                element.type = WALL_FRONT;
+                element.src = (Rectangle){TILESIZE,0,TILESIZE,TILESIZE};
+                break;
+            case WALL_SIDE:
+                element.type = WALL_SIDE;
+                element.src = (Rectangle){TILESIZE*5,0,TILESIZE,TILESIZE};
+                break;
+            case WALL_BACK:
+                element.type = WALL_BACK;
+                element.src = (Rectangle){TILESIZE,TILESIZE*5,TILESIZE,TILESIZE};
+                break;
+            case WALL_SIDE_LEFT:
+                element.type = WALL_SIDE_LEFT;
+                element.src = (Rectangle){0,0,TILESIZE,TILESIZE};
+                break;;
+            case NONE:
+            default:
+                currentPosition.x += TILESIZE;
+                continue;
+            }
+            
+            element.dest = (Rectangle){currentPosition.x,currentPosition.y,TILESIZE,TILESIZE};
+
+            if (CheckCollisionRecs(element.dest,character->animation->frameRect))
+            {
+                //printf("Collided!!!");
+                character->speed = (Vector2){0,0};
+            } 
+            else
+            {
+               // printf("Not collided");
+            }
+
+            currentPosition.x += TILESIZE;
+        }
+        currentPosition.y += TILESIZE; 
+        
+    }
+
 }

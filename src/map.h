@@ -5,7 +5,7 @@
 
 #define TILESIZE 16
 #define MAPWIDTH 8
-#define MAPLEN 10
+#define MAPLEN 12
 
 
 typedef struct TileSet
@@ -23,7 +23,8 @@ typedef enum ELEMENT_TYPE
     FLOOR,
     WALL_FRONT,
     WALL_BACK,
-    WALL_SIDE
+    WALL_SIDE,
+    WALL_SIDE_LEFT
     
 }ELEMENT_TYPE;
 
@@ -38,10 +39,20 @@ typedef struct Element
     Rectangle dest;
 }Element;
 
+typedef struct LevelData{
+    int enemyNumber;
+    Vector2 initPosition;
+    Character* player;
+    Character* enemies;
+    
+}LevelData;
+
+
 int InitiTileSet(TileSet* tileSet);
 void DeInitTileSet(TileSet* tileSet);
 void DrawRoom(TileSet* tileSet, Vector2 position);
-void DrawGroundLayer(Vector2 initialPosition, TileSet* tileSet);
+void DrawGroundLayer(LevelData* levelData, TileSet* tileSet);
+void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* character);
 
 
 #endif
