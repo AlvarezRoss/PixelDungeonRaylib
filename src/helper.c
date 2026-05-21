@@ -36,9 +36,10 @@ int InitCharacter(Character* character, Animation* idleAnimation, Animation* wal
     character->walking = false;
     character->damaged = false;
     character->health = 40;
-    character->speed = 30;
+    character->speed = (Vector2){0,0};
     character->Postion = (Vector2){800/2,450/2};
     character->rotated = false;
+    character->collisionRect = (Rectangle){character->Postion.x,character->Postion.y,SPRITELEN,SPRITEHEIGHT};
     
     return 0;
 }
