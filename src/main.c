@@ -8,6 +8,7 @@ void PlayerMovement(Character* player);
 void EnemyMovement(Character* enemy, Character* player);
 int InitEnemy(Character* enemy, char* enemyType);
 void EnemyAttack(Character* enemy);
+void UpdateCharacterPosition(Character* character);
 
 int main(void)
 {
@@ -17,7 +18,8 @@ int main(void)
     TileSet* tileSet = malloc(sizeof(TileSet));
     Character player;
     Character enemy;
-
+    LevelData levelData;
+    levelData.initPosition = (Vector2){300,300};
     if (InitPlayer(&player) != 0) return 1;
     if (InitEnemy(&enemy,"orc") != 0) return 1;
     if (InitiTileSet(tileSet) != 0) return 1;
@@ -32,7 +34,9 @@ int main(void)
     {
         PlayerMovement(&player);
         UpdateCharacterAnimation(&player);
+        UpdateCharacterPosition(&player);
         HandleCharacterRotation(&player);
+        HandleGroundCollision(&levelData,tileSet,&player);
 
         EnemyMovement(&enemy, &player);
         UpdateCharacterAnimation(&enemy);
@@ -45,9 +49,10 @@ int main(void)
         BeginDrawing();
             ClearBackground((Color){37,19,26,255});
             DrawText("My first text",20,20,10,WHITE);
+            DrawGroundLayer(&levelData,tileSet);
             DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
             DrawTextureRec(enemy.animation->texture,enemy.animation->frameRect,enemy.Postion,WHITE);
-            DrawGroundLayer((Vector2){300,300},tileSet);
+            DrawRectangleLinesEx(player.collisionRect,3.5f,WHITE);
         EndDrawing();
     }
 
@@ -78,7 +83,7 @@ int InitPlayer(Character* player)
     if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Attack01.png", 7) != 0) return 1;
     if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Hurt.png",4) != 0) return 1;
     if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation, hurtAnimation) != 0) return 1;
-
+    player->entityType = ENTITY_PLAYER;
     return 0;
 }
 
@@ -101,7 +106,7 @@ int InitEnemy(Character* enemy, char* enemyType)
     if (InitCharacter(enemy,idleAnimation,walkAnimation,attackAnimation,hurtAnimation) != 0) return 1;
 
     enemy->playerDetected = true;
-    enemy->enemy = true;
+    enemy->entityType = ENTITY_ORC;
 
     return 0;
 
@@ -128,33 +133,64 @@ void DeinitPlayer(Character* player)
 void PlayerMovement(Character* player)
 {
     if (player == NULL) return;
-
-    if (IsKeyDown(KEY_D) && !player->attacking)
+    // IDLE
+    if (GetKeyPressed() == 0 && !player->attacking)
     {
-        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
-        player->Postion.x += 1;
-        if (player->rotated) player->rotated = false;
-        player->walking = true;
-    }
-    else if (IsKeyDown(KEY_A) && !player->attacking)
-    {
-        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
-        player->Postion.x -= 1;
-        if (!player->rotated) player->rotated = true;
-        player->walking = true; 
-    }
-    else if (IsKeyPressed(KEY_ENTER) && !player->attacking)
-    {
-        player->animation = player->attackAnimation;
-        player->attacking = true;
-    }
-    else if (!player->attacking)
-    {   
-        if (player->animation != player->idleAnimation) player->animation = player->idleAnimation;
         player->walking = false;
-    } 
+        if (player->animation != player->idleAnimation) player->animation = player->idleAnimation;
+    }
+    // MOVEMENT
+    if (IsKeyDown(KEY_A) && !player->attacking)
+    {
+        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        player->walking = true;
+        player->speed.x = -1;
+        if (!player->rotated) player->rotated = true;
+    }
+    else if (IsKeyDown(KEY_D) && !player->attacking)
+    {
+        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        player->walking = true;
+        player->speed.x = 1;
+        if (player->rotated) player->rotated = false;
+    }
+    else
+    {
+        player->speed.x = 0;
+    }
+
+
+    if (IsKeyDown(KEY_W) && !player->attacking)
+    {
+        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        player->walking = true;
+        player->speed.y = -1;
+    }
+    else if (IsKeyDown(KEY_S) && !player->attacking)
+    {
+        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        player->walking = true;
+        player->speed.y = 1;
+    }
+    else
+    {
+        player->speed.y = 0;
+    }
+
+    // ATTACK
+
+    if (IsKeyDown(KEY_ENTER) && !player->attacking)
+    {
+        if (player->animation != player->attackAnimation) player->animation = player->attackAnimation;
+        player->walking = false;
+        player->attacking = true;
+        player->speed = (Vector2){0,0};
+    }
+    player->collisionRect.x = player->Postion.x;
+    player->collisionRect.y = player->Postion.y;
 }
 
+// TODO - NEEDS TO ACCOUNT FOR Y MOVEMENT NOW
 void EnemyMovement(Character* enemy, Character* player)
 {
     if (enemy == NULL || player == NULL) return;
@@ -204,4 +240,10 @@ void EnemyAttack(Character* enemy)
     if (enemy == NULL) return;
 
     if (enemy->animation != enemy->attackAnimation) enemy->animation = enemy->attackAnimation;
+}
+
+void UpdateCharacterPosition(Character* character)
+{
+    character->Postion.x += character->speed.x;
+    character->Postion.y += character->speed.y;
 }
