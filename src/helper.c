@@ -39,7 +39,7 @@ int InitCharacter(Character* character, Animation* idleAnimation, Animation* wal
     character->speed = (Vector2){0,0};
     character->Postion = (Vector2){800/2,450/2};
     character->rotated = false;
-    character->collisionRect = (Rectangle){character->Postion.x,character->Postion.y,SPRITELEN,SPRITEHEIGHT};
+    character->collisionRect = (Rectangle){character->animation->frameRect.width/2,character->animation->frameRect.height/2,SPRITELEN,SPRITEHEIGHT};
     
     return 0;
 }
@@ -62,6 +62,9 @@ void UpdateCharacterAnimation(Character* character)
 
         character->animation->frameRect.x = (float)character->animation->currentFrame * character->animation->frameWidth;
     }
+
+    character->collisionRect.x = character->Postion.x + (character->animation->frameWidth/2.0f) - 10;
+    character->collisionRect.y = character->Postion.y + (character->animation->texture.height/2.0f) - 10;
         
 }
 
