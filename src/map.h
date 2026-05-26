@@ -53,6 +53,7 @@ void DeInitTileSet(TileSet* tileSet);
 void DrawRoom(TileSet* tileSet, Vector2 position);
 void DrawGroundLayer(LevelData* levelData, TileSet* tileSet);
 void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* character);
+void HandleCollisionDirection(Element* element, Character* character);
 
 
 #endif

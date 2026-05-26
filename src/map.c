@@ -129,7 +129,7 @@ void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* ch
             case WALL_SIDE_LEFT:
                 element.type = WALL_SIDE_LEFT;
                 element.src = (Rectangle){0,0,TILESIZE,TILESIZE};
-                break;;
+                break;
             case NONE:
             default:
                 currentPosition.x += TILESIZE;
@@ -137,21 +137,47 @@ void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* ch
             }
             
             element.dest = (Rectangle){currentPosition.x,currentPosition.y,TILESIZE,TILESIZE};
+            bool collision = CheckCollisionRecs(element.dest,character->collisionRect);
 
-            if (CheckCollisionRecs(element.dest,character->animation->frameRect))
-            {
-                //printf("Collided!!!");
-                character->speed = (Vector2){0,0};
-            } 
-            else
-            {
-               // printf("Not collided");
-            }
-
+            if (collision) HandleCollisionDirection(&element,character); 
+            
             currentPosition.x += TILESIZE;
         }
         currentPosition.y += TILESIZE; 
         
     }
 
+}
+
+void HandleCollisionDirection(Element* element, Character* character)
+{
+    if (!element || !character) return;
+
+    Rectangle collisionBox = {0};
+
+    collisionBox = GetCollisionRec(element->dest,character->collisionRect);
+    // we need the center points of both the element and the character to then compare them and that way determine the direction of the collision
+    Vector2 characterCenter = (Vector2){character->collisionRect.x/2.0f, character->collisionRect.y/2.0f};
+    Vector2 elementCenter = (Vector2){element->dest.x/2.0f, element->dest.y/2.0f};
+
+    // Checking if the collision is horizontal
+    /* We add or subtract the collision width/height to the position to move the player away from the collision point
+        and to make a wobbeling motion when a collision happens
+    */
+    if (collisionBox.width < collisionBox.height)
+    {
+        if (elementCenter.x < characterCenter.x) character->Postion.x += collisionBox.width;// collision from the left
+        else if (elementCenter.x > characterCenter.x) character->Postion.x -= collisionBox.width; // collision from the right
+       
+        character->speed.x = 0.0f;
+    }
+    else
+    {
+        if (elementCenter.y < characterCenter.y) character->Postion.y += collisionBox.height;
+        else if (elementCenter.y > characterCenter.y) character->Postion.y -= collisionBox.height;
+
+        character->speed.y = 0.0f;
+    }
+
+    return;
 }
