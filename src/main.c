@@ -12,7 +12,7 @@ void UpdateCharacterPosition(Character* character);
 
 int main(void)
 {
-    Rectangle window = {0,0,480,950};    
+    Rectangle window = {0,0,800,800};    
     InitWindow(window.height,window.width,"My first Window");
 
     TileSet* tileSet = malloc(sizeof(TileSet));
@@ -25,18 +25,19 @@ int main(void)
     if (InitiTileSet(tileSet) != 0) return 1;
 
 
-    player.Postion.y = enemy.Postion.y;
-    player.Postion.x = enemy.Postion.x + 100;
+    player.Postion.y = levelData.initPosition.y - 20;
+    player.Postion.x = levelData.initPosition.x + 20;
 
     SetTargetFPS(60);
 
     while(!WindowShouldClose())
     {
         PlayerMovement(&player);
+        HandleGroundCollision(&levelData,tileSet,&player);
         UpdateCharacterAnimation(&player);
         UpdateCharacterPosition(&player);
         HandleCharacterRotation(&player);
-        HandleGroundCollision(&levelData,tileSet,&player);
+        
 
         EnemyMovement(&enemy, &player);
         UpdateCharacterAnimation(&enemy);
@@ -52,7 +53,6 @@ int main(void)
             DrawGroundLayer(&levelData,tileSet);
             DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
             DrawTextureRec(enemy.animation->texture,enemy.animation->frameRect,enemy.Postion,WHITE);
-            DrawRectangleLinesEx(player.collisionRect,3.5f,WHITE);
         EndDrawing();
     }
 
@@ -186,8 +186,6 @@ void PlayerMovement(Character* player)
         player->attacking = true;
         player->speed = (Vector2){0,0};
     }
-    player->collisionRect.x = player->Postion.x;
-    player->collisionRect.y = player->Postion.y;
 }
 
 // TODO - NEEDS TO ACCOUNT FOR Y MOVEMENT NOW
