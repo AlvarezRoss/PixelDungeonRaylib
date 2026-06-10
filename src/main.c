@@ -9,6 +9,8 @@ void EnemyMovement(Character* enemy, Character* player);
 int InitEnemy(Character* enemy, char* enemyType);
 void EnemyAttack(Character* enemy);
 void UpdateCharacterPosition(Character* character);
+void HandlePlayerAttack(Character* player, Character* enemies);
+void TakeDamage(Character* character, int damage);
 
 int main(void)
 {
@@ -18,30 +20,39 @@ int main(void)
     TileSet* tileSet = malloc(sizeof(TileSet));
     Character player;
     Character enemy;
+    Character enemies[ENEMIES_IN_LEVEL_ONE];
     LevelData levelData;
     levelData.initPosition = (Vector2){300,300};
     if (InitPlayer(&player) != 0) return 1;
     if (InitEnemy(&enemy,"orc") != 0) return 1;
     if (InitiTileSet(tileSet) != 0) return 1;
-
+    
 
     player.Postion.y = levelData.initPosition.y - 20;
     player.Postion.x = levelData.initPosition.x + 20;
 
+    enemies[0] = enemy;
+
+    enemies[0].Postion.y = levelData.initPosition.y - 10;
+    enemies[0].Postion.x = levelData.initPosition.x + 30;
+
+    
     SetTargetFPS(60);
+    
 
     while(!WindowShouldClose())
     {
         PlayerMovement(&player);
         HandleGroundCollision(&levelData,tileSet,&player);
+        HandlePlayerAttack(&player,enemies);
         UpdateCharacterAnimation(&player);
         UpdateCharacterPosition(&player);
         HandleCharacterRotation(&player);
         
 
-        EnemyMovement(&enemy, &player);
-        UpdateCharacterAnimation(&enemy);
-        HandleCharacterRotation(&enemy);
+        EnemyMovement(&enemies[0], &player);
+        UpdateCharacterAnimation(&enemies[0]);
+        HandleCharacterRotation(&enemies[0]);
         
         //-----------------------------------------------------------
         //                Draw
@@ -52,7 +63,7 @@ int main(void)
             DrawText("My first text",20,20,10,WHITE);
             DrawGroundLayer(&levelData,tileSet);
             DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
-            DrawTextureRec(enemy.animation->texture,enemy.animation->frameRect,enemy.Postion,WHITE);
+            DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
         EndDrawing();
     }
 
@@ -84,6 +95,8 @@ int InitPlayer(Character* player)
     if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Hurt.png",4) != 0) return 1;
     if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation, hurtAnimation) != 0) return 1;
     player->entityType = ENTITY_PLAYER;
+    player->maxHealth = 40;
+    player->health = player->maxHealth;
     return 0;
 }
 
@@ -134,23 +147,23 @@ void PlayerMovement(Character* player)
 {
     if (player == NULL) return;
     // IDLE
-    if (GetKeyPressed() == 0 && !player->attacking)
+    if (GetKeyPressed() == 0 && player->entityState != STATE_ATTACKING)
     {
-        player->walking = false;
+        player->entityState = STATE_IDLE;
         if (player->animation != player->idleAnimation) player->animation = player->idleAnimation;
     }
     // MOVEMENT
-    if (IsKeyDown(KEY_A) && !player->attacking)
+    if (IsKeyDown(KEY_A) && player->entityState != STATE_ATTACKING)
     {
         if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
-        player->walking = true;
+        player->entityState = STATE_WALKING;
         player->speed.x = -1;
         if (!player->rotated) player->rotated = true;
     }
-    else if (IsKeyDown(KEY_D) && !player->attacking)
+    else if (IsKeyDown(KEY_D) && player->entityState != STATE_ATTACKING)
     {
         if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
-        player->walking = true;
+        player->entityState = STATE_WALKING;
         player->speed.x = 1;
         if (player->rotated) player->rotated = false;
     }
@@ -160,80 +173,41 @@ void PlayerMovement(Character* player)
     }
 
 
-    if (IsKeyDown(KEY_W) && !player->attacking)
+    if (IsKeyDown(KEY_W) && player->entityState != STATE_ATTACKING)
     {
         if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
-        player->walking = true;
+        player->entityState = STATE_WALKING;
         player->speed.y = -1;
     }
-    else if (IsKeyDown(KEY_S) && !player->attacking)
+    else if (IsKeyDown(KEY_S) && player->entityState != STATE_ATTACKING)
     {
         if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
-        player->walking = true;
+        player->entityState = STATE_WALKING;
         player->speed.y = 1;
     }
     else
     {
         player->speed.y = 0;
     }
-
-    // ATTACK
-
-    if (IsKeyDown(KEY_ENTER) && !player->attacking)
-    {
-        if (player->animation != player->attackAnimation) player->animation = player->attackAnimation;
-        player->walking = false;
-        player->attacking = true;
-        player->speed = (Vector2){0,0};
-    }
 }
 
-// TODO - NEEDS TO ACCOUNT FOR Y MOVEMENT NOW
+// TODO - actually move -- Should handle movement and state control in different functions
 void EnemyMovement(Character* enemy, Character* player)
 {
     if (enemy == NULL || player == NULL) return;
 
-    if (!enemy->playerDetected) 
+    if (!enemy->playerDetected || enemy->entityState == STATE_IDLE) // Revise -> not detecing a player should change the state to idle
     {
         if (enemy->animation != enemy->idleAnimation) enemy->animation = enemy->idleAnimation;
     }
+    if (enemy->entityState == STATE_HURT) return;
 
-    if (enemy->attacking) EnemyAttack(enemy);
-    else if (!enemy->attacking)
-    {
-        if (player->Postion.x - SPRITELEN > enemy->Postion.x)
-        {
-            enemy->Postion.x += 1;
-            enemy->walking = true;
-            
-            if (enemy->animation != enemy->walkingAnimation)
-            {
-                enemy->animation = enemy->walkingAnimation;
-            } 
-            if (enemy->rotated) enemy->rotated = false;
-        }
-        else if (player->Postion.x + SPRITELEN < enemy->Postion.x)
-        {
-            enemy->Postion.x -= 1;
-            enemy->walking = true;
-            
-            if (enemy->animation != enemy->walkingAnimation)
-            {
-                enemy->animation = enemy->walkingAnimation;
-            } 
-            
-            if (!enemy->rotated) enemy->rotated = true;
-        }
-        else
-        {
-            enemy->attacking = true;
-            enemy->walking = false;
-            EnemyAttack(enemy);
-        }
-    }
+    if (enemy->entityState == STATE_ATTACKING) EnemyAttack(enemy);
+    
+    
 }
 
-void EnemyAttack(Character* enemy)
+void EnemyAttack(Character* enemy) // TODO- IMPLEMENTING HIT LOGIC
 {
     if (enemy == NULL) return;
 
@@ -244,4 +218,43 @@ void UpdateCharacterPosition(Character* character)
 {
     character->Postion.x += character->speed.x;
     character->Postion.y += character->speed.y;
+}
+
+void HandlePlayerAttack(Character* player, Character* enemies)
+{
+
+    if (IsKeyPressed(KEY_ENTER) && player->entityState != STATE_ATTACKING)
+    {
+        if (player->animation != player->attackAnimation) player->animation = player->attackAnimation;
+        player->entityState = STATE_ATTACKING;
+        player->speed = (Vector2){0,0};
+
+        for (int i = 0; i < ENEMIES_IN_LEVEL_ONE; i++)
+        {
+            if (CheckCollisionRecs(player->collisionRect, enemies[i].collisionRect) && enemies[i].entityState != STATE_HURT)
+            {
+                enemies[i].entityState = STATE_HURT;
+                TakeDamage(&enemies[i],5);
+            }
+        }
+    }
+    
+    return;
+}
+
+/*
+    Damage Functions:
+        - 2 functions have to be done one for the player and another for the enemies.
+        
+
+*/
+void TakeDamage(Character* character, int damage)
+{
+    if (character == NULL) return;
+    
+    if (character->entityState != STATE_HURT || damage == 0) return;
+
+
+    if (character->animation != character->hurtAnimation) character->animation = character->hurtAnimation;
+    character->health -= damage;
 }
