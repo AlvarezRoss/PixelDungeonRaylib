@@ -4,8 +4,8 @@
 #include "helper.h"
 
 #define TILESIZE 16
-#define MAPWIDTH 8
-#define MAPLEN 12
+#define MAPWIDTH 25
+#define MAPLEN 26
 
 
 typedef struct TileSet
