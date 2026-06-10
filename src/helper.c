@@ -32,9 +32,7 @@ int InitCharacter(Character* character, Animation* idleAnimation, Animation* wal
     character->attackAnimation = attackAnimation;
     character->hurtAnimation = hurtAnimation;
     character->animation = character->idleAnimation;
-    character->attacking = false;
-    character->walking = false;
-    character->damaged = false;
+    character->entityState = STATE_IDLE;
     character->health = 40;
     character->speed = (Vector2){0,0};
     character->Postion = (Vector2){800/2,450/2};
@@ -56,8 +54,8 @@ void UpdateCharacterAnimation(Character* character)
         if (character->animation->currentFrame >= character->animation->frameNum)
         {
             character->animation->currentFrame = 0; // animation restart
-            if (character->animation == character->attackAnimation) character->attacking = false;
-            if (character->animation == character->hurtAnimation) character->takingDamage = false;
+            if (character->animation == character->attackAnimation) character->entityState = STATE_IDLE;
+            if (character->animation == character->hurtAnimation) character->entityState = STATE_IDLE;
         } 
 
         character->animation->frameRect.x = (float)character->animation->currentFrame * character->animation->frameWidth;
@@ -82,21 +80,4 @@ void HandleCharacterRotation(Character* character)
         character->animation->frameRect.width = - character->animation ->frameRect.width;
         character->animation->rotated = false;
     }
-}
-/*
-    Damage Functions:
-        - 2 functions have to be done one for the player and another for the enemies.
-        
-
-*/
-void TakeDamage(Character* character, int damage)
-{
-    if (character == NULL) return;
-
-    if (!character->takingDamage || damage == 0) return;
-
-
-    if (character->animation != character->hurtAnimation) character->animation = character->hurtAnimation;
-    character->health -= damage;
-    printf("%d",character->health);
 }
