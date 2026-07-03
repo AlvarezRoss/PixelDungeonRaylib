@@ -29,6 +29,35 @@ ELEMENT_TYPE groundLayerMatrix[MAPWIDTH][MAPLEN] =
                                         {0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,0,0,0}
                                         };
 
+ELEMENT_TYPE objectLayer[MAPWIDTH][MAPLEN] =
+                                    {
+                                        {0,9,0,9,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,9,0,0,9,0,0,0,9,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+                                    };                                        
+
 
 int InitiTileSet(TileSet* tileSet)
 {
@@ -115,6 +144,38 @@ void DrawGroundLayer(LevelData* levelData, TileSet* tileSet)
         }
         currentPosition.y += TILESIZE; 
         
+    }
+}
+
+void DrawObjectLayer(LevelData* levelData, TileSet* tileSet)
+{
+    if (levelData == NULL || tileSet == NULL) return;
+    Vector2 currentPosition = levelData->initPosition;
+    for (int i = 0; i < MAPWIDTH; i++)
+    {
+        currentPosition.x = levelData->initPosition.x;
+        for (int g = 0; g < MAPLEN; g++)
+        {
+            Element element;
+            switch (objectLayer[i][g])
+            {
+            case CHEST:
+                element.type = CHEST;
+                element.src = (Rectangle){TILESIZE,TILESIZE*8,TILESIZE,TILESIZE};
+                break;
+            case TORCH:
+                element.type = TORCH;
+                element.src = (Rectangle){0,TILESIZE*9,TILESIZE,TILESIZE};
+                break;
+            default:
+                currentPosition.x += TILESIZE;
+                continue;
+            }
+            element.dest = (Rectangle){currentPosition.x,currentPosition.y,TILESIZE,TILESIZE};
+            DrawTexturePro(tileSet->map,element.src,element.dest,(Vector2){0,0},0.0f,WHITE);
+            currentPosition.x += TILESIZE;
+        }
+        currentPosition.y += TILESIZE;
     }
 }
 
