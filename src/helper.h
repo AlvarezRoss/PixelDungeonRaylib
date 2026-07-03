@@ -68,4 +68,6 @@ void DeinitAnimation(Animation* animation); // DELETE MAYBE?
 int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation);
 void UpdateCharacterAnimation(Character* character);
 void HandleCharacterRotation(Character* character);
+int InitCamera(Camera2D* camera, Character* player, Rectangle window); // Pass by value of the window rectangle is deliverate 
+void UpdateCharacterCamera(Camera2D* camera, Character* player);
 #endif

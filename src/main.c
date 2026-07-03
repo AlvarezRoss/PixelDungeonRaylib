@@ -24,19 +24,19 @@ int main(void)
     LevelData levelData;
     levelData.initPosition = (Vector2){300,300};
     if (InitPlayer(&player) != 0) return 1;
-    if (InitEnemy(&enemy,"orc") != 0) return 1;
     if (InitiTileSet(tileSet) != 0) return 1;
     
 
     player.Postion.y = levelData.initPosition.y - 20;
     player.Postion.x = levelData.initPosition.x + 20;
 
-    enemies[0] = enemy;
+    if (InitEnemy(&enemies[0],"orc") != 0) return 1;
 
     enemies[0].Postion.y = levelData.initPosition.y - 10;
     enemies[0].Postion.x = levelData.initPosition.x + 30;
 
-    
+    Camera2D camera = {0};
+    if (InitCamera(&camera,&player,window) != 0) return 1;
     SetTargetFPS(60);
     
 
@@ -48,6 +48,8 @@ int main(void)
         UpdateCharacterAnimation(&player);
         UpdateCharacterPosition(&player);
         HandleCharacterRotation(&player);
+
+        UpdateCharacterCamera(&camera,&player);
         
 
         EnemyMovement(&enemies[0], &player);
@@ -61,9 +63,14 @@ int main(void)
         BeginDrawing();
             ClearBackground((Color){37,19,26,255});
             DrawText("My first text",20,20,10,WHITE);
-            DrawGroundLayer(&levelData,tileSet);
-            DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
-            DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
+            
+            BeginMode2D(camera);
+                DrawGroundLayer(&levelData,tileSet);
+                DrawObjectLayer(&levelData,tileSet);
+                DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
+                DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
+            EndMode2D();
+            
         EndDrawing();
     }
 

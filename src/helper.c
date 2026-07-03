@@ -81,3 +81,24 @@ void HandleCharacterRotation(Character* character)
         character->animation->rotated = false;
     }
 }
+
+// In these two functions I have set the camera to be the characters position + 50 or 40. They are of yet arbitrary numbers that look good for now
+int InitCamera(Camera2D* camera, Character* player, Rectangle window)
+{
+    if (camera == NULL) return 1;
+    if (player == NULL) return 1;
+
+    camera->target = (Vector2){player->Postion.x + 50, player->Postion.y + 40};
+    camera->zoom = 4.0f;
+    camera->offset = (Vector2){window.width/2.0f,window.height/2.0f};
+    camera->rotation = 0.0f;
+    return 0;
+}
+
+void UpdateCharacterCamera(Camera2D* camera, Character* character) // Funtion is needed to change the camera focus from the player to their companions - TO BE IMPLEMENTED
+{
+    if (camera== NULL || character ==  NULL) return;
+
+    camera->target = (Vector2){character->Postion.x + 50, character->Postion.y + 40};
+    return;
+}
