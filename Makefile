@@ -1,9 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -std=c99
+CFLAGS = -Wall -std=c99 -MMD -MP
 LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
-SRC = src/main.c src/helper.c src/map.c
+SRC = src/main.c src/helper.c src/map.c src/enemyBehaviours.c
 OBJ = $(SRC:.c=.o)
+DEP = $(OBJ:.o=.d)
 
 TARGET = game
 
@@ -16,3 +17,5 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 clean:
 	rm -f $(OBJ) $(TARGET)
+
+-include $(DEP)
