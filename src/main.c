@@ -1,6 +1,7 @@
 
 #include "helper.h"
 #include "map.h"
+#include "enemyBehaviours.h"
 
 int InitPlayer(Character* player);
 void DeinitPlayer(Character* player);
@@ -19,7 +20,6 @@ int main(void)
 
     TileSet* tileSet = malloc(sizeof(TileSet));
     Character player;
-    Character enemy;
     Character enemies[ENEMIES_IN_LEVEL_ONE];
     LevelData levelData;
     levelData.initPosition = (Vector2){300,300};
@@ -48,13 +48,15 @@ int main(void)
         UpdateCharacterAnimation(&player);
         UpdateCharacterPosition(&player);
         HandleCharacterRotation(&player);
+        
 
         UpdateCharacterCamera(&camera,&player);
         
-
         EnemyMovement(&enemies[0], &player);
+        HandleGroundCollision(&levelData,tileSet,&enemies[0]);
         UpdateCharacterAnimation(&enemies[0]);
         HandleCharacterRotation(&enemies[0]);
+        UpdateCharacterPosition(&enemies[0]);
         
         //-----------------------------------------------------------
         //                Draw
@@ -63,12 +65,14 @@ int main(void)
         BeginDrawing();
             ClearBackground((Color){37,19,26,255});
             DrawText("My first text",20,20,10,WHITE);
+            DrawText(TextFormat("%d",enemies[0].entityState),20,10,10,WHITE);
             
             BeginMode2D(camera);
                 DrawGroundLayer(&levelData,tileSet);
                 DrawObjectLayer(&levelData,tileSet);
-                DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
                 DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
+                DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
+               // DrawCircle(enemies[0].detectionArea.center.x,enemies[0].detectionArea.center.y,enemies[0].detectionArea.radius,enemies[0].detectionArea.color);
             EndMode2D();
             
         EndDrawing();
@@ -77,8 +81,9 @@ int main(void)
     // ----------------------------------------------------------------
     // DEINIT
     // ----------------------------------------------------------------
+    
     DeinitPlayer(&player);
-    DeinitPlayer(&enemy); // Unsure if I need to have another function for enemy characters or just rename the function
+    DeinitPlayer(&enemies[0]); // Unsure if I need to have another function for enemy characters or just rename the function
     DeInitTileSet(tileSet);
     tileSet = NULL;
     CloseWindow();
@@ -87,7 +92,7 @@ int main(void)
 }
 
 /*
-    We use different init functions for the player and the enemies to handle the specefici paths to the different animation sprites
+    We use different init functions for the player and the enemies to handle the specefic paths to the different animation sprites
 */
 int InitPlayer(Character* player)
 {
@@ -95,12 +100,14 @@ int InitPlayer(Character* player)
     Animation* walkingAnimation = malloc(sizeof(Animation));
     Animation* attackAnimation = malloc(sizeof(Animation));
     Animation* hurtAnimation = malloc(sizeof(Animation));
+    Animation* deathAnimation = malloc(sizeof(Animation));
 
     if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Idle.png",6) != 0) return 1;
     if (InitAnimation(walkingAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Walk.png",8) != 0) return 1;
     if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Attack01.png", 7) != 0) return 1;
     if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Hurt.png",4) != 0) return 1;
-    if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation, hurtAnimation) != 0) return 1;
+    if (InitAnimation(deathAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Death.png",4) != 0) return 1;
+    if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation, hurtAnimation, deathAnimation) != 0) return 1;
     player->entityType = ENTITY_PLAYER;
     player->maxHealth = 40;
     player->health = player->maxHealth;
@@ -116,6 +123,7 @@ int InitEnemy(Character* enemy, char* enemyType)
     Animation* walkAnimation = malloc(sizeof(Animation));
     Animation* attackAnimation = malloc(sizeof(Animation));
     Animation* hurtAnimation = malloc(sizeof(Animation));
+    Animation* deathAnimation = malloc(sizeof(Animation));
 
     // TODO -- ENEMY TYPES!!!
 
@@ -123,11 +131,14 @@ int InitEnemy(Character* enemy, char* enemyType)
     if (InitAnimation(walkAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Walk.png",8) != 0) return 1;
     if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Attack01.png",6) != 0) return 1;
     if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Hurt.png",4) != 0) return 1;
-    if (InitCharacter(enemy,idleAnimation,walkAnimation,attackAnimation,hurtAnimation) != 0) return 1;
+    if (InitAnimation(deathAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Death.png",4) != 0) return 1; 
+    if (InitCharacter(enemy,idleAnimation,walkAnimation,attackAnimation,hurtAnimation,deathAnimation) != 0) return 1;
 
-    enemy->playerDetected = true;
     enemy->entityType = ENTITY_ORC;
-
+    enemy->entityState = STATE_IDLE;
+    enemy->detectionArea.center = (Vector2){enemy->collisionRect.x,enemy->collisionRect.y};
+    enemy->detectionArea.radius = 50.0f;
+    enemy->detectionArea.color = BLUE;
     return 0;
 
 }
@@ -153,6 +164,7 @@ void DeinitPlayer(Character* player)
 void PlayerMovement(Character* player)
 {
     if (player == NULL) return;
+    if (player->entityState == STATE_DEAD) return;
     // IDLE
     if (GetKeyPressed() == 0 && player->entityState != STATE_ATTACKING)
     {
@@ -202,15 +214,33 @@ void PlayerMovement(Character* player)
 void EnemyMovement(Character* enemy, Character* player)
 {
     if (enemy == NULL || player == NULL) return;
+    if (enemy->entityState == STATE_HURT) return;
+    if (enemy->entityState == STATE_DEAD) return;
+    enemy->detectionArea.center = (Vector2){enemy->collisionRect.x,enemy->collisionRect.y};
 
-    if (!enemy->playerDetected || enemy->entityState == STATE_IDLE) // Revise -> not detecing a player should change the state to idle
+    if (CheckCollisionCircleRec(enemy->detectionArea.center,enemy->detectionArea.radius,player->collisionRect) && 
+            (enemy->entityState != STATE_HURT && enemy->entityState != STATE_ATTACKING)) 
+    {
+        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+        enemy->entityState = STATE_FOLLOWING;
+        ChasePlayer(enemy,player);
+        return;
+    }
+        
+    if (enemy->entityState == STATE_IDLE)
     {
         if (enemy->animation != enemy->idleAnimation) enemy->animation = enemy->idleAnimation;
+        enemy->speed = (Vector2){0.0f,0.0f};
+        return;
     }
-    if (enemy->entityState == STATE_HURT) return;
-
-    if (enemy->entityState == STATE_ATTACKING) EnemyAttack(enemy);
     
+    if (enemy->entityState == STATE_ATTACKING)
+    {
+        EnemyAttack(enemy);
+        return;
+    } 
+
+    enemy->entityState = STATE_IDLE;
     
 }
 
@@ -225,6 +255,8 @@ void UpdateCharacterPosition(Character* character)
 {
     character->Postion.x += character->speed.x;
     character->Postion.y += character->speed.y;
+    character->collisionRect.x = character->Postion.x + (character->animation->frameWidth/2.0f) - 10;
+    character->collisionRect.y = character->Postion.y + (character->animation->texture.height/2.0f) - 10;
 }
 
 void HandlePlayerAttack(Character* player, Character* enemies)
@@ -259,9 +291,19 @@ void TakeDamage(Character* character, int damage)
 {
     if (character == NULL) return;
     
-    if (character->entityState != STATE_HURT || damage == 0) return;
+    //if (character->entityState != STATE_HURT || damage == 0) return;
 
-
-    if (character->animation != character->hurtAnimation) character->animation = character->hurtAnimation;
     character->health -= damage;
+
+    if (character->health <= 0)
+    {
+        character->entityState = STATE_DEAD;
+       if (character->animation != character->deathAnimation) character->animation = character->deathAnimation;
+    }
+
+    else
+    {
+        if (character->animation != character->hurtAnimation) character->animation = character->hurtAnimation;
+    }
+
 }
