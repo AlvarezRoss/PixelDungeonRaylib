@@ -23,7 +23,7 @@ int InitAnimation(Animation* animation, const char* path, int frameNumber)
 }
 
 
-int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation)
+int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation, Animation* deathAnimation)
 {
     if(character == NULL || idleAnimation == NULL || walkAnimation == NULL || attackAnimation == NULL || hurtAnimation == NULL) return 1;
 
@@ -31,6 +31,7 @@ int InitCharacter(Character* character, Animation* idleAnimation, Animation* wal
     character->walkingAnimation = walkAnimation;
     character->attackAnimation = attackAnimation;
     character->hurtAnimation = hurtAnimation;
+    character->deathAnimation = deathAnimation;
     character->animation = character->idleAnimation;
     character->entityState = STATE_IDLE;
     character->health = 40;
@@ -54,16 +55,13 @@ void UpdateCharacterAnimation(Character* character)
         if (character->animation->currentFrame >= character->animation->frameNum)
         {
             character->animation->currentFrame = 0; // animation restart
-            if (character->animation == character->attackAnimation) character->entityState = STATE_IDLE;
-            if (character->animation == character->hurtAnimation) character->entityState = STATE_IDLE;
+            if (character->entityState == STATE_ATTACKING) character->entityState = STATE_IDLE;
+            if (character->entityState == STATE_HURT) character->entityState = STATE_IDLE;
+            if (character->entityState == STATE_DEAD && character->entityType != ENTITY_PLAYER) character->Postion.x += 1000000;
         } 
 
         character->animation->frameRect.x = (float)character->animation->currentFrame * character->animation->frameWidth;
-    }
-
-    character->collisionRect.x = character->Postion.x + (character->animation->frameWidth/2.0f) - 10;
-    character->collisionRect.y = character->Postion.y + (character->animation->texture.height/2.0f) - 10;
-        
+    }   
 }
 
 void HandleCharacterRotation(Character* character)

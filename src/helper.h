@@ -24,6 +24,12 @@ typedef struct Animation{
     bool rotated; // if character is rotated and animation isn't then we rotate the animation
 }Animation;
 
+typedef struct Area{
+    Vector2 center;
+    float radius;
+    Color color;
+}Area;
+
 typedef enum ENTITY_TYPE
 {
     ENTITY_PLAYER,
@@ -37,7 +43,9 @@ typedef enum ENTITY_STATE
     STATE_WALKING,
     STATE_ATTACKING,
     STATE_HURT,
-    STATE_DEAD
+    STATE_DEAD,
+    STATE_FOLLOWING, // Only used for companions and enemies
+    STATE_PATROL
 } ENTITY_STATE;
 
 typedef struct Character{
@@ -47,25 +55,22 @@ typedef struct Character{
     Animation* walkingAnimation;
     Animation* attackAnimation;
     Animation* hurtAnimation;
+    Animation* deathAnimation;
     ENTITY_TYPE entityType;
     ENTITY_STATE entityState;
+    Area detectionArea; // Used only for enemies
     Vector2 speed;
     Rectangle collisionRect;
     int maxHealth;
     int health;
-    //bool attacking;
-    //bool damaged;
-    //bool walking;
     bool rotated;
-    bool playerDetected; // Only use for enemy characters
-    //bool takingDamage;
     bool inAttackRange; // Used to determine whcih enemies are within range
 }Character;
 
 
 int InitAnimation(Animation* animation, const char* path, int frameNumber);
 void DeinitAnimation(Animation* animation); // DELETE MAYBE?
-int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation);
+int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation, Animation* deathAnimation);
 void UpdateCharacterAnimation(Character* character);
 void HandleCharacterRotation(Character* character);
 int InitCamera(Camera2D* camera, Character* player, Rectangle window); // Pass by value of the window rectangle is deliverate 
