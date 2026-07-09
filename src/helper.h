@@ -84,4 +84,5 @@ void UpdateCharacterCamera(Camera2D* camera, Character* player);
 void StartTimer(Timer* timer, float lifetime);
 void UpdateTimer(Timer* timer);
 int TimerFinished(Timer* timer);
+void FullScreen(int windowWidth, int windowHeight, Camera2D* camera);
 #endif

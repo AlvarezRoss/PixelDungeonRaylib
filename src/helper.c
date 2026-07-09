@@ -126,3 +126,22 @@ int TimerFinished(Timer* timer)
     if (timer->lifetime > 0.0f) return 1;
     return 0;
 }
+void FullScreen(int windowWidth, int windowHeight, Camera2D* camera)
+{
+    if(camera == NULL) return;
+    if(!IsWindowFullscreen())
+    {
+        int monitor = GetCurrentMonitor();
+        windowWidth = GetMonitorWidth(monitor);
+        windowHeight = GetMonitorHeight(monitor);
+        SetWindowSize(windowWidth,windowHeight);
+        ToggleFullscreen();
+    }
+    else
+    {
+        ToggleFullscreen();
+        SetWindowSize(windowWidth,windowHeight);
+    }
+
+    camera->offset = (Vector2){windowWidth/2.0f,windowHeight/2.0f};
+}
