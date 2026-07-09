@@ -42,3 +42,12 @@ void ChasePlayer(Character* enemy, Character* target)
         enemy->speed.y = 0;
     }
 }
+
+void FacePlayer(Character* player, Character* enemy)
+{
+    if(player == NULL || enemy  == NULL) return;
+    if (player->Postion.x > enemy->Postion.x + 5) enemy->rotated = false;
+    else enemy->rotated = true;
+
+}
+
