@@ -42,6 +42,7 @@ int main(void)
 
     while(!WindowShouldClose())
     {
+        if(IsKeyPressed(KEY_F1)) FullScreen(window.width,window.height,&camera);
         PlayerMovement(&player);
         HandleGroundCollision(&levelData,tileSet,&player);
         HandlePlayerAttack(&player,enemies);
@@ -66,7 +67,7 @@ int main(void)
         BeginDrawing();
             ClearBackground((Color){37,19,26,255});
             //DrawText("My first text",20,20,10,WHITE);
-            DrawText(TextFormat("%d",enemies[0].entityState),20,10,10,WHITE);
+            //DrawText(TextFormat("%d",enemies[0].entityState),20,10,10,WHITE);
             
             BeginMode2D(camera);
                 DrawGroundLayer(&levelData,tileSet);
