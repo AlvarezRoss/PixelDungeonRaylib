@@ -8,7 +8,7 @@ void DeinitPlayer(Character* player);
 void PlayerMovement(Character* player);
 void EnemyMovement(Character* enemy, Character* player);
 int InitEnemy(Character* enemy, char* enemyType);
-void EnemyAttack(Character* enemy);
+void EnemyAttack(Character* enemy, Character* player);
 void UpdateCharacterPosition(Character* character);
 void HandlePlayerAttack(Character* player, Character* enemies);
 void TakeDamage(Character* character, int damage);
@@ -53,6 +53,7 @@ int main(void)
         UpdateCharacterCamera(&camera,&player);
         
         EnemyMovement(&enemies[0], &player);
+        EnemyAttack(&enemies[0],&player);
         HandleGroundCollision(&levelData,tileSet,&enemies[0]);
         UpdateCharacterAnimation(&enemies[0]);
         HandleCharacterRotation(&enemies[0]);
@@ -64,7 +65,7 @@ int main(void)
         
         BeginDrawing();
             ClearBackground((Color){37,19,26,255});
-            DrawText("My first text",20,20,10,WHITE);
+            //DrawText("My first text",20,20,10,WHITE);
             DrawText(TextFormat("%d",enemies[0].entityState),20,10,10,WHITE);
             
             BeginMode2D(camera);
@@ -115,7 +116,7 @@ int InitPlayer(Character* player)
 }
 
 int InitEnemy(Character* enemy, char* enemyType)
-{
+{ // If this funtion returns 1 the program will quit so I don't call free on allocated memory
     if (enemy == NULL || enemyType == NULL) return 1;
     //if (strcmp(enemyType,"") != 0) return 1;
 
@@ -124,6 +125,8 @@ int InitEnemy(Character* enemy, char* enemyType)
     Animation* attackAnimation = malloc(sizeof(Animation));
     Animation* hurtAnimation = malloc(sizeof(Animation));
     Animation* deathAnimation = malloc(sizeof(Animation));
+    enemy->attackTimer = malloc(sizeof(Timer));
+    if (enemy->attackTimer == NULL) return 1;
 
     // TODO -- ENEMY TYPES!!!
 
@@ -139,6 +142,7 @@ int InitEnemy(Character* enemy, char* enemyType)
     enemy->detectionArea.center = (Vector2){enemy->collisionRect.x,enemy->collisionRect.y};
     enemy->detectionArea.radius = 50.0f;
     enemy->detectionArea.color = BLUE;
+    enemy->attackTimer->lifetime = 0.0f;
     return 0;
 
 }
@@ -159,6 +163,7 @@ void DeinitPlayer(Character* player)
     free(player->attackAnimation);
     free(player->walkingAnimation);
     free(player->hurtAnimation);
+    if (player->attackTimer != NULL) free(player->attackTimer);
 }
 
 void PlayerMovement(Character* player)
@@ -233,22 +238,26 @@ void EnemyMovement(Character* enemy, Character* player)
         enemy->speed = (Vector2){0.0f,0.0f};
         return;
     }
-    
-    if (enemy->entityState == STATE_ATTACKING)
-    {
-        EnemyAttack(enemy);
-        return;
-    } 
 
     enemy->entityState = STATE_IDLE;
     
 }
 
-void EnemyAttack(Character* enemy) // TODO- IMPLEMENTING HIT LOGIC
+void EnemyAttack(Character* enemy, Character* player) // TODO- IMPLEMENTING HIT LOGIC
 {
-    if (enemy == NULL) return;
-
-    if (enemy->animation != enemy->attackAnimation) enemy->animation = enemy->attackAnimation;
+    if (enemy == NULL || player == NULL) return;
+    if(enemy->entityState == STATE_HURT || enemy->entityState == STATE_DEAD) return;
+    bool playerCollision = CheckCollisionRecs(enemy->collisionRect, player->collisionRect);
+    //printf("enemy timer: %f",enemy->attackTimer->lifetime);
+    if (TimerFinished(enemy->attackTimer) == 1) UpdateTimer(enemy->attackTimer);
+    if (!playerCollision) return;
+    if (TimerFinished(enemy->attackTimer) == 0)
+    {
+        enemy->entityState = STATE_ATTACKING;
+        FacePlayer(player,enemy);
+        if (enemy->animation != enemy->attackAnimation) enemy->animation = enemy->attackAnimation;
+        return;
+    }
 }
 
 void UpdateCharacterPosition(Character* character)
