@@ -55,7 +55,11 @@ void UpdateCharacterAnimation(Character* character)
         if (character->animation->currentFrame >= character->animation->frameNum)
         {
             character->animation->currentFrame = 0; // animation restart
-            if (character->entityState == STATE_ATTACKING) character->entityState = STATE_IDLE;
+            if (character->entityState == STATE_ATTACKING)
+            {
+                character->entityState = STATE_IDLE;
+                if (character->entityType != ENTITY_PLAYER) StartTimer(character->attackTimer,5.0f);
+            } 
             if (character->entityState == STATE_HURT) character->entityState = STATE_IDLE;
             if (character->entityState == STATE_DEAD && character->entityType != ENTITY_PLAYER) character->Postion.x += 1000000;
         } 
@@ -99,4 +103,26 @@ void UpdateCharacterCamera(Camera2D* camera, Character* character) // Funtion is
 
     camera->target = (Vector2){character->Postion.x + 50, character->Postion.y + 40};
     return;
+}
+
+void StartTimer(Timer* timer, float lifetime)
+{
+    if (timer == NULL) return;
+
+    timer->lifetime = lifetime;
+    return;
+}
+
+void UpdateTimer(Timer* timer)
+{
+    if(timer == NULL) return;
+
+    timer->lifetime -= GetFrameTime();
+}
+
+int TimerFinished(Timer* timer)
+{
+    if (timer == NULL) return -1; 
+    if (timer->lifetime > 0.0f) return 1;
+    return 0;
 }

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <time.h>
+
 
 #define SPRITELEN 16
 #define SPRITEHEIGHT 16
@@ -48,6 +48,11 @@ typedef enum ENTITY_STATE
     STATE_PATROL
 } ENTITY_STATE;
 
+typedef struct Timer
+{
+    float lifetime;
+}Timer;
+
 typedef struct Character{
     Vector2 Postion;
     Animation* animation;
@@ -56,6 +61,7 @@ typedef struct Character{
     Animation* attackAnimation;
     Animation* hurtAnimation;
     Animation* deathAnimation;
+    Timer* attackTimer;
     ENTITY_TYPE entityType;
     ENTITY_STATE entityState;
     Area detectionArea; // Used only for enemies
@@ -75,4 +81,7 @@ void UpdateCharacterAnimation(Character* character);
 void HandleCharacterRotation(Character* character);
 int InitCamera(Camera2D* camera, Character* player, Rectangle window); // Pass by value of the window rectangle is deliverate 
 void UpdateCharacterCamera(Camera2D* camera, Character* player);
+void StartTimer(Timer* timer, float lifetime);
+void UpdateTimer(Timer* timer);
+int TimerFinished(Timer* timer);
 #endif
