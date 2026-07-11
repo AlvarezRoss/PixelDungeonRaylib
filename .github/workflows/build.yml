@@ -76,17 +76,14 @@ jobs:
       - name: Build game
         shell: msys2 {0}
         run: make
-      - name: Check dependencies
-        shell: msys2 {0}
-        run: |
-          ldd game.exe
 
       - name: Package Windows build
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release
           Copy-Item game.exe release/
-          Copy-Item C:/msys64/mingw64/bin/raylib.dll release/
+          Copy-Item C:/msys64/mingw64/bin/libraylib.dll release/
+          Copy-Item C:/msys64/mingw64/bin/glfw3.dll release/
           Compress-Archive -Path release/* -DestinationPath MyGame-Windows.zip
 
       - name: Upload Windows package
