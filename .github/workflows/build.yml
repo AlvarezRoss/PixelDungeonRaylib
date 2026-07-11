@@ -16,6 +16,29 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y libraylib-dev
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            cmake \
+            libglfw3-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxcursor-dev \
+            libxinerama-dev \
+            libxi-dev \
+            libxrandr-dev
+
+      - name: Build raylib
+        run: |
+          git clone --depth 1 https://github.com/raysan5/raylib.git
+          cd raylib/src
+          make PLATFORM=PLATFORM_DESKTOP
+          sudo make install
+      
+      -name: Build game
+        run: make
 
       - name: Build
         run: make
