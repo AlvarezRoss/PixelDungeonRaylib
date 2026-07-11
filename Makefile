@@ -8,16 +8,18 @@ DEP = $(OBJ:.o=.d)
 TARGET = game
 
 ifeq ($(OS),Windows_NT)
+	LDFLAGS = -static
 	LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
 	TARGET := game.exe
 else
+	LDFLAGS =
 	LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 endif
 
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET) $(LIBS)
+	$(CC) $(OBJ) -o $(TARGET) $(LDFLAGS) $(LIBS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

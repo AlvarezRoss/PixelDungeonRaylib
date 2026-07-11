@@ -2,12 +2,13 @@
 
 void Patrol(Character* enemy)
 {
+    if (enemy == NULL) return;
     return;   
 }
 
 void ChasePlayer(Character* enemy, Character* target)
 {
-    if (enemy == NULL || target == NULL);
+    if (enemy == NULL || target == NULL) return;
     if (enemy->Postion.x > target->Postion.x + 10)
     {
         if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
