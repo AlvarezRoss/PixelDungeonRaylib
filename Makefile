@@ -8,8 +8,8 @@ DEP = $(OBJ:.o=.d)
 TARGET = game
 
 ifeq ($(OS),Windows_NT)
-	LDFLAGS = -static
-	LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
+	LDFLAGS = 
+	LIBS = -lraylib -lglfw3 -lopengl32 -lgdi32 -lwinmm
 	TARGET := game.exe
 else
 	LDFLAGS =
