@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install raylib
+        run: |
+          sudo apt update
+          sudo apt install -y libraylib-dev
+
+      - name: Build
+        run: make
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-linux
+          path: game
