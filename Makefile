@@ -1,12 +1,18 @@
 CC = gcc
-CFLAGS = -Wall -std=c99 -MMD -MP
-LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+CFLAGS = -Wall -Wextra -std=c99 -MMD -MP
 
 SRC = src/main.c src/helper.c src/map.c src/enemyBehaviours.c
 OBJ = $(SRC:.c=.o)
 DEP = $(OBJ:.o=.d)
 
 TARGET = game
+
+ifeq ($(OS),Windows_NT)
+	LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm
+	TARGET := game.exe
+else
+	LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+endif
 
 all: $(TARGET)
 
@@ -15,7 +21,8 @@ $(TARGET): $(OBJ)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(DEP) $(TARGET)
 
 -include $(DEP)
