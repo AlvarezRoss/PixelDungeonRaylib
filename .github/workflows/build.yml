@@ -76,6 +76,10 @@ jobs:
       - name: Build game
         shell: msys2 {0}
         run: make
+      - name: Check dependencies
+        shell: msys2 {0}
+        run: |
+          ldd game.exe
 
       - name: Package Windows build
         shell: pwsh
