@@ -46,7 +46,6 @@ jobs:
         run: |
           mkdir release
           cp game release/
-          cp -r Assets release/
           tar -czf MyGame-Linux.tar.gz -C release .
 
       - name: Upload Linux package
@@ -87,7 +86,6 @@ jobs:
         run: |
           mkdir release
           cp game.exe release/
-          cp -r Assets release/
           cd release
           7z a ../MyGame-Windows.zip *
 
