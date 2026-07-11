@@ -65,6 +65,7 @@ jobs:
             mingw-w64-x86_64-raylib
             make
             git
+            zip
       - name: Build raylib DLL
         shell: msys2 {0}
         run: |
@@ -77,15 +78,17 @@ jobs:
         shell: msys2 {0}
         run: make
 
-      - name: Package Windows build
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path release
-          Copy-Item game.exe release/
-          Copy-Item C:/msys64/mingw64/bin/libraylib.dll release/
-          Copy-Item C:/msys64/mingw64/bin/glfw3.dll release/
-          Compress-Archive -Path release/* -DestinationPath MyGame-Windows.zip
-
+      -  name: Package Windows build
+         shell: msys2 {0}
+         run: |
+          mkdir -p release
+          cp game.exe release/
+          cp /mingw64/bin/libraylib.dll release/
+          cp /mingw64/bin/glfw3.dll release/
+      
+          cd release
+          zip -r ../MyGame-Windows.zip .
+      
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
