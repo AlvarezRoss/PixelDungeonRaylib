@@ -42,7 +42,7 @@ jobs:
           name: game-linux
           path: game
 
-build-windows:
+  build-windows:
     runs-on: windows-latest
 
     steps:
