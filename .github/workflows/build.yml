@@ -64,6 +64,7 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-raylib
             make
+            git
       - name: Build raylib DLL
         shell: msys2 {0}
         run: |
