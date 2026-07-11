@@ -12,10 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install raylib
-        run: |
-          sudo apt update
-          sudo apt install -y libraylib-dev
       - name: Install dependencies
         run: |
           sudo apt update
@@ -36,11 +32,8 @@ jobs:
           cd raylib/src
           make PLATFORM=PLATFORM_DESKTOP
           sudo make install
-      
-      -name: Build game
-        run: make
 
-      - name: Build
+      - name: Build game
         run: make
 
       - name: Upload executable
