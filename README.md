@@ -136,6 +136,8 @@ The prototype demonstrates modular systems designed to be reusable across differ
 - The game currently supports one enemy type (Orc) in the first level
 - Enemy detection uses a simple radius-based system without line-of-sight
 - This is a prototype; many engine features are not yet production-ready
+- Assets not included in the repository.
+- Substitute assets included in the pre-release v.0.5
 
 ## License
 
