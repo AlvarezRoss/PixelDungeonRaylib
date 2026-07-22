@@ -51,7 +51,7 @@ ELEMENT_TYPE objectLayer[MAPWIDTH][MAPLEN] =
                                         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                                         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                                         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-                                        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0},
+                                        {0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0},
                                         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                                         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                                         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -146,8 +146,8 @@ void DrawGroundLayer(LevelData* levelData, TileSet* tileSet)
         
     }
 }
-
-void DrawObjectLayer(LevelData* levelData, TileSet* tileSet)
+// TODO: I need to refactor this logic. DrawObjectLayer should only draw the layer not act as handler for player interaction
+void DrawObjectLayer(LevelData* levelData, TileSet* tileSet, Character* player)
 {
     if (levelData == NULL || tileSet == NULL) return;
     Vector2 currentPosition = levelData->initPosition;
@@ -167,12 +167,21 @@ void DrawObjectLayer(LevelData* levelData, TileSet* tileSet)
                 element.type = TORCH;
                 element.src = (Rectangle){0,TILESIZE*9,TILESIZE,TILESIZE};
                 break;
+            case BANNER:
+                element.type = BANNER;
+                element.src = (Rectangle){TILESIZE*4,TILESIZE*7,TILESIZE,TILESIZE};
+                break;
+            case KEY:
+                element.type = KEY;
+                element.src = (Rectangle){TILESIZE*9,TILESIZE*9,TILESIZE,TILESIZE};
+                break;
             default:
                 currentPosition.x += TILESIZE;
                 continue;
             }
             element.dest = (Rectangle){currentPosition.x,currentPosition.y,TILESIZE,TILESIZE};
             DrawTexturePro(tileSet->map,element.src,element.dest,(Vector2){0,0},0.0f,WHITE);
+            HandlePlayerInteraction(&element,player,i,g);
             currentPosition.x += TILESIZE;
         }
         currentPosition.y += TILESIZE;
@@ -190,38 +199,16 @@ void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* ch
 
         for (int g = 0; g < MAPLEN; g++)
         {
-            switch (groundLayerMatrix[i][g])
-            {
-            case WALL_FRONT:
-                element.type = WALL_FRONT;
-                element.src = (Rectangle){TILESIZE,0,TILESIZE,TILESIZE};
-                break;
-            case WALL_SIDE:
-                element.type = WALL_SIDE;
-                element.src = (Rectangle){TILESIZE*5,0,TILESIZE,TILESIZE};
-                break;
-            case WALL_BACK:
-                element.type = WALL_BACK;
-                element.src = (Rectangle){TILESIZE,TILESIZE*5,TILESIZE,TILESIZE};
-                break;
-            case WALL_SIDE_LEFT:
-                element.type = WALL_SIDE_LEFT;
-                element.src = (Rectangle){0,0,TILESIZE,TILESIZE};
-                break;
-            case NONE:
-            default:
-                currentPosition.x += TILESIZE;
-                continue;
-            }
-            
             element.dest = (Rectangle){currentPosition.x,currentPosition.y,TILESIZE,TILESIZE};
-            bool collision = CheckCollisionRecs(element.dest,character->collisionRect);
-
-            if (collision) HandleCollisionDirection(&element,character); 
-            
             currentPosition.x += TILESIZE;
+
+            bool collisionObject = CheckCollisionObject(i,g);
+            if (!collisionObject) continue;
+            
+            bool collision = CheckCollisionRecs(element.dest,character->collisionRect);
+            if (collision) HandleCollisionDirection(&element,character);
         }
-        currentPosition.y += TILESIZE; 
+        currentPosition.y += TILESIZE;
         
     }
 
@@ -258,4 +245,40 @@ void HandleCollisionDirection(Element* element, Character* character)
     }
 
     return;
+}
+void HandlePlayerInteraction(Element* element, Character* player, int x, int y)
+{
+    if (element == NULL || player == NULL) return;
+    if (!IsKeyPressed(KEY_E)) return;
+
+    switch (element->type)
+    {
+    case CHEST:
+        objectLayer[x][y] = 11;
+        break;
+    case KEY:
+        objectLayer[x][y] = 0;
+        break;
+    default:
+        break;
+    }
+
+    return;
+}
+
+bool CheckCollisionObject(int x, int y)
+{
+    switch (groundLayerMatrix[x][y])
+    {
+            case WALL_FRONT:
+            case WALL_SIDE:
+            case WALL_BACK:
+            case WALL_SIDE_LEFT:
+                return true;            
+            case NONE:
+            default:
+                return false;
+    }
+
+    return false;
 }

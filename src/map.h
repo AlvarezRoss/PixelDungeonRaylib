@@ -26,7 +26,9 @@ typedef enum ELEMENT_TYPE
     WALL_SIDE,
     WALL_SIDE_LEFT,
     CHEST,
-    TORCH
+    TORCH,
+    BANNER,
+    KEY
     
 }ELEMENT_TYPE;
 
@@ -56,7 +58,8 @@ void DrawRoom(TileSet* tileSet, Vector2 position);
 void DrawGroundLayer(LevelData* levelData, TileSet* tileSet);
 void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* character);
 void HandleCollisionDirection(Element* element, Character* character);
-void DrawObjectLayer(LevelData* levelData, TileSet* tileSet);
-
+void DrawObjectLayer(LevelData* levelData, TileSet* tileSet, Character* player);
+void HandlePlayerInteraction(Element* element, Character* player, int x, int y);
+bool CheckCollisionObject(int x, int y);
 
 #endif
