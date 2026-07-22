@@ -71,7 +71,7 @@ int main(void)
             
             BeginMode2D(camera);
                 DrawGroundLayer(&levelData,tileSet);
-                DrawObjectLayer(&levelData,tileSet);
+                DrawObjectLayer(&levelData,tileSet,&player); // for now I need to pass the a player pointer... PENDING REFACTOR
                 DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
                 DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
                // DrawCircle(enemies[0].detectionArea.center.x,enemies[0].detectionArea.center.y,enemies[0].detectionArea.radius,enemies[0].detectionArea.color);
