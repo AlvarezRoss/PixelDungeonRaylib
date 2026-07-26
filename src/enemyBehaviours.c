@@ -42,6 +42,12 @@ void ChasePlayer(Character* enemy, Character* target)
     {
         enemy->speed.y = 0;
     }
+
+    if (TimerFinished(enemy->attackTimer) != 0 && enemy->speed.x == 0 && enemy->speed.y == 0) // This plays the idle animation if the enemy cannot attack and the enemy is close to the player
+    {
+        enemy->animation = enemy->idleAnimation;
+    }
+
 }
 
 void FacePlayer(Character* player, Character* enemy)
