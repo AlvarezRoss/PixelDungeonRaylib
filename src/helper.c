@@ -126,22 +126,54 @@ int TimerFinished(Timer* timer)
     if (timer->lifetime > 0.0f) return 1;
     return 0;
 }
-void FullScreen(int windowWidth, int windowHeight, Camera2D* camera)
+void FullScreen(float* windowWidth, float* windowHeight, Camera2D* camera)
 {
     if(camera == NULL) return;
     if(!IsWindowFullscreen())
     {
         int monitor = GetCurrentMonitor();
-        windowWidth = GetMonitorWidth(monitor);
-        windowHeight = GetMonitorHeight(monitor);
-        SetWindowSize(windowWidth,windowHeight);
+        *windowWidth = (float)GetMonitorWidth(monitor);
+        *windowHeight = (float)GetMonitorHeight(monitor);
+        SetWindowSize(*windowWidth,*windowHeight);
         ToggleFullscreen();
     }
     else
     {
         ToggleFullscreen();
-        SetWindowSize(windowWidth,windowHeight);
+        *windowHeight = (float)WINDOWED_MODE_SIZE;
+        *windowWidth = (float)WINDOWED_MODE_SIZE;
+        SetWindowSize(*windowWidth,*windowHeight);
     }
 
-    camera->offset = (Vector2){windowWidth/2.0f,windowHeight/2.0f};
+    camera->offset = (Vector2){*windowWidth/2.0f,*windowHeight/2.0f};
+}
+
+int InitGameState(GameState* gameState)
+{
+    if (gameState == NULL) return -1;
+
+    gameState->State = GAME_STATE_RUNNING;
+    gameState->level = 1;
+    gameState->targetFps = 60;
+    return 0;
+}
+
+int GameStateInputHandle(GameState* gameState)
+{
+    if (gameState == NULL) return -1;
+    if (IsKeyPressed(KEY_SPACE))
+    {
+        if (gameState->State == GAME_STATE_RUNNING) gameState->State = GAME_STATE_PAUSED;
+        else gameState->State = GAME_STATE_RUNNING;
+        return 0;
+    }
+
+    if (IsKeyPressed(KEY_F2))
+    {
+        if (gameState->State != GAME_STATE_IN_EDITOR) gameState->State = GAME_STATE_IN_EDITOR;
+        else gameState->State = GAME_STATE_RUNNING;
+        return 0;
+    }
+
+    return 0;
 }

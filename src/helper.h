@@ -11,6 +11,7 @@
 #define SPRITELEN 16
 #define SPRITEHEIGHT 16
 #define ENEMIES_IN_LEVEL_ONE 2
+#define WINDOWED_MODE_SIZE 800.0f
 
 
 typedef struct Animation{
@@ -29,6 +30,19 @@ typedef struct Area{
     float radius;
     Color color;
 }Area;
+typedef enum GAME_STATE
+{
+    GAME_STATE_RUNNING,
+    GAME_STATE_PAUSED,
+    GAME_STATE_IN_EDITOR
+} GAME_STATE;
+
+typedef struct GameState
+{
+    GAME_STATE State;
+    int level;
+    int targetFps;
+} GameState;
 
 typedef enum ENTITY_TYPE
 {
@@ -47,6 +61,8 @@ typedef enum ENTITY_STATE
     STATE_FOLLOWING, // Only used for companions and enemies
     STATE_PATROL
 } ENTITY_STATE;
+
+
 
 typedef struct Timer
 {
@@ -84,5 +100,7 @@ void UpdateCharacterCamera(Camera2D* camera, Character* player);
 void StartTimer(Timer* timer, float lifetime);
 void UpdateTimer(Timer* timer);
 int TimerFinished(Timer* timer);
-void FullScreen(int windowWidth, int windowHeight, Camera2D* camera);
+void FullScreen(float* windowWidth, float* windowHeight, Camera2D* camera);
+int InitGameState(GameState* gameState);
+int GameStateInputHandle(GameState* gameState);
 #endif
