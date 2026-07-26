@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -MMD -MP
 
-SRC = src/main.c src/helper.c src/map.c src/enemyBehaviours.c
+SRC = src/main.c src/helper.c src/map.c src/enemyBehaviours.c src/editor.c
 OBJ = $(SRC:.c=.o)
 DEP = $(OBJ:.o=.d)
 
