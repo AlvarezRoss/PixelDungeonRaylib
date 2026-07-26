@@ -171,6 +171,7 @@ void PlayerMovement(Character* player)
 {
     if (player == NULL) return;
     if (player->entityState == STATE_DEAD) return;
+    if (player->entityState == STATE_HURT) return;
     // IDLE
     if (GetKeyPressed() == 0 && player->entityState != STATE_ATTACKING)
     {
@@ -227,7 +228,6 @@ void EnemyMovement(Character* enemy, Character* player)
     if (CheckCollisionCircleRec(enemy->detectionArea.center,enemy->detectionArea.radius,player->collisionRect) && 
             (enemy->entityState != STATE_HURT && enemy->entityState != STATE_ATTACKING)) 
     {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
         enemy->entityState = STATE_FOLLOWING;
         ChasePlayer(enemy,player);
         return;
@@ -249,14 +249,18 @@ void EnemyAttack(Character* enemy, Character* player) // TODO- IMPLEMENTING HIT 
     if (enemy == NULL || player == NULL) return;
     if(enemy->entityState == STATE_HURT || enemy->entityState == STATE_DEAD) return;
     bool playerCollision = CheckCollisionRecs(enemy->collisionRect, player->collisionRect);
-    //printf("enemy timer: %f",enemy->attackTimer->lifetime);
     if (TimerFinished(enemy->attackTimer) == 1) UpdateTimer(enemy->attackTimer);
     if (!playerCollision) return;
     if (TimerFinished(enemy->attackTimer) == 0)
     {
         enemy->entityState = STATE_ATTACKING;
         FacePlayer(player,enemy);
-        if (enemy->animation != enemy->attackAnimation) enemy->animation = enemy->attackAnimation;
+        if (enemy->animation != enemy->attackAnimation)
+        {
+            enemy->animation = enemy->attackAnimation;
+            TakeDamage(player,1);
+        } 
+        
         return;
     }
 }
@@ -271,7 +275,8 @@ void UpdateCharacterPosition(Character* character)
 
 void HandlePlayerAttack(Character* player, Character* enemies)
 {
-
+    if (player == NULL) return;
+    if (player->entityState == STATE_DEAD) return;
     if (IsKeyPressed(KEY_ENTER) && player->entityState != STATE_ATTACKING)
     {
         if (player->animation != player->attackAnimation) player->animation = player->attackAnimation;
@@ -282,7 +287,6 @@ void HandlePlayerAttack(Character* player, Character* enemies)
         {
             if (CheckCollisionRecs(player->collisionRect, enemies[i].collisionRect) && enemies[i].entityState != STATE_HURT)
             {
-                enemies[i].entityState = STATE_HURT;
                 TakeDamage(&enemies[i],5);
             }
         }
@@ -301,8 +305,9 @@ void TakeDamage(Character* character, int damage)
 {
     if (character == NULL) return;
     
-    //if (character->entityState != STATE_HURT || damage == 0) return;
-
+    if (character->entityState == STATE_HURT) return;
+    character->entityState = STATE_HURT;
+    printf("Health: %d",character->health);
     character->health -= damage;
 
     if (character->health <= 0)
