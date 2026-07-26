@@ -2,6 +2,7 @@
 #include "helper.h"
 #include "map.h"
 #include "enemyBehaviours.h"
+#include "editor.h"
 
 int InitPlayer(Character* player);
 void DeinitPlayer(Character* player);
@@ -12,10 +13,12 @@ void EnemyAttack(Character* enemy, Character* player);
 void UpdateCharacterPosition(Character* character);
 void HandlePlayerAttack(Character* player, Character* enemies);
 void TakeDamage(Character* character, int damage);
+void ProcGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera);
+void DrawGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies);
 
 int main(void)
 {
-    Rectangle window = {0,0,800,800};    
+    Rectangle window = {0,0,WINDOWED_MODE_SIZE,WINDOWED_MODE_SIZE};    
     InitWindow(window.height,window.width,"My first Window");
 
     TileSet* tileSet = malloc(sizeof(TileSet));
@@ -37,45 +40,34 @@ int main(void)
 
     Camera2D camera = {0};
     if (InitCamera(&camera,&player,window) != 0) return 1;
-    SetTargetFPS(60);
+
+    GameState gameState;
+    if(InitGameState(&gameState) != 0) return 1;
+    SetTargetFPS(gameState.targetFps);
     
 
     while(!WindowShouldClose())
     {
-        if(IsKeyPressed(KEY_F1)) FullScreen(window.width,window.height,&camera);
-        PlayerMovement(&player);
-        HandleGroundCollision(&levelData,tileSet,&player);
-        HandlePlayerAttack(&player,enemies);
-        UpdateCharacterAnimation(&player);
-        UpdateCharacterPosition(&player);
-        HandleCharacterRotation(&player);
-        
-
-        UpdateCharacterCamera(&camera,&player);
-        
-        EnemyMovement(&enemies[0], &player);
-        EnemyAttack(&enemies[0],&player);
-        HandleGroundCollision(&levelData,tileSet,&enemies[0]);
-        UpdateCharacterAnimation(&enemies[0]);
-        HandleCharacterRotation(&enemies[0]);
-        UpdateCharacterPosition(&enemies[0]);
+        if(IsKeyPressed(KEY_F1)) FullScreen(&window.width,&window.height,&camera);
+        GameStateInputHandle(&gameState);
+        if (gameState.State == GAME_STATE_RUNNING)
+        {
+            ProcGameLoop(&player,enemies,&levelData,tileSet,&camera);
+        }
         
         //-----------------------------------------------------------
         //                Draw
         //-----------------------------------------------------------
         
         BeginDrawing();
-            ClearBackground((Color){37,19,26,255});
-            //DrawText("My first text",20,20,10,WHITE);
-            //DrawText(TextFormat("%d",enemies[0].entityState),20,10,10,WHITE);
-            
-            BeginMode2D(camera);
-                DrawGroundLayer(&levelData,tileSet);
-                DrawObjectLayer(&levelData,tileSet,&player); // for now I need to pass the a player pointer... PENDING REFACTOR
-                DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
-                DrawTextureRec(player.animation->texture,player.animation->frameRect,player.Postion,WHITE);
-               // DrawCircle(enemies[0].detectionArea.center.x,enemies[0].detectionArea.center.y,enemies[0].detectionArea.radius,enemies[0].detectionArea.color);
-            EndMode2D();
+            if (gameState.State == GAME_STATE_RUNNING)
+            {
+                DrawGameLoop(&camera,&levelData,tileSet,&player,enemies);
+            }
+            else if (gameState.State == GAME_STATE_IN_EDITOR)
+            {
+                InitEditor(window, tileSet);
+            }
             
         EndDrawing();
     }
@@ -93,6 +85,36 @@ int main(void)
     return 0;    
 }
 
+void ProcGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera)
+{
+    PlayerMovement(player);
+    HandleGroundCollision(levelData,tileSet,player);
+    HandlePlayerAttack(player,enemies);
+    UpdateCharacterAnimation(player);
+    UpdateCharacterPosition(player);
+    HandleCharacterRotation(player);
+        
+
+    UpdateCharacterCamera(camera,player);
+        
+    EnemyMovement(&enemies[0], player);
+    EnemyAttack(&enemies[0],player);
+    HandleGroundCollision(levelData,tileSet,&enemies[0]);
+    UpdateCharacterAnimation(&enemies[0]);
+    HandleCharacterRotation(&enemies[0]);
+    UpdateCharacterPosition(&enemies[0]);
+}
+void DrawGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies)
+{
+    ClearBackground((Color){37,19,26,255});
+            
+    BeginMode2D(*camera);
+        DrawGroundLayer(levelData,tileSet);
+        DrawObjectLayer(levelData,tileSet,player); // for now I need to pass the a player pointer... PENDING REFACTOR
+        DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
+        DrawTextureRec(player->animation->texture,player->animation->frameRect,player->Postion,WHITE);
+    EndMode2D();
+}
 /*
     We use different init functions for the player and the enemies to handle the specefic paths to the different animation sprites
 */
@@ -113,6 +135,7 @@ int InitPlayer(Character* player)
     player->entityType = ENTITY_PLAYER;
     player->maxHealth = 40;
     player->health = player->maxHealth;
+    player->attackTimer = NULL;
     return 0;
 }
 
@@ -307,7 +330,6 @@ void TakeDamage(Character* character, int damage)
     
     if (character->entityState == STATE_HURT) return;
     character->entityState = STATE_HURT;
-    printf("Health: %d",character->health);
     character->health -= damage;
 
     if (character->health <= 0)
