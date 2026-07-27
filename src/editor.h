@@ -6,5 +6,6 @@
 
 void InitEditor(Rectangle window, TileSet* tileSet);
 void GetEidtorPanels(Rectangle window, Rectangle* sidePanel, Rectangle* MainPanel, float sidePanelPosition);
+void DrawTileSelector(Rectangle* sidePanel, TileSet* tileSet);
 
 #endif
