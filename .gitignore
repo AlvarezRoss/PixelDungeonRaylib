@@ -1,0 +1,8 @@
+Assets
+src/helper.o
+src/main.o
+.vscode
+game
+*.o
+*.d
+build/
