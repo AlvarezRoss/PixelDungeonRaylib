@@ -28,4 +28,3 @@ Level edtitor:
 Fixes:
     - Enemy playing hurt animation twice when attacked:
         - This does not happen all the time, I need to isolate the issue
-    - Full/Windowned screen: Currenly I can change from windowed to full screen but not back since I am passing stuff as pointer
