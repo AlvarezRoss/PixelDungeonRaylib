@@ -6,3 +6,4 @@ game
 *.o
 *.d
 build/
+game.exe
