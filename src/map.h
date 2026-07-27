@@ -64,8 +64,8 @@ typedef enum TILES // This is needed for the map editor and the draw and collisi
     WALL_RIGHT_4,
     DOOR_FRONT_1,
     DOOR_FRONT_2,
-    HATCH,
-    LADDER,
+    HATCH_1,
+    LADDER_1,
 
     // ROW 5 //
     LEFT_CORNER_WALL,
@@ -86,9 +86,9 @@ typedef enum TILES // This is needed for the map editor and the draw and collisi
     TOP_RIGHT_CORNER_WALL_1,
     TOP_LEFT_CORNER_WALL_2,
     TOP_RIGHT_CORNER_WALL_2,
-    RIGHT_DOOR_2,
+    RIGHT_DOOR_3,
     LEFT_DOOR_2,
-    RIGHT_DOOR_2,
+    RIGHT_DOOR_4,
     STONES_2,
 
     // ROW 7 //
@@ -108,7 +108,7 @@ typedef enum TILES // This is needed for the map editor and the draw and collisi
     FLOOR_31,
     FLOOR_32,
     FLOOR_33,
-    BANNER,
+    BANNER_1,
     DECOR_1,
     DECOR_2,
     SKULL_1,
@@ -123,7 +123,7 @@ typedef enum TILES // This is needed for the map editor and the draw and collisi
     CHEST_5,
     CHEST_6,
     COIN_1,
-    MANA_SMALL,
+    MANA_SMALL_1,
     KEY_1,
     HP_BIG,
 
@@ -135,8 +135,8 @@ typedef enum TILES // This is needed for the map editor and the draw and collisi
     TORCH_5,
     TORCH_6,
     TORCH_7,
-    MANA_BIG,
-    HP_SMALL,
+    MANA_BIG_1,
+    HP_SMALL_1,
     KEY_2,
 
 
