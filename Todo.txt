@@ -1,0 +1,31 @@
+Pending todos:
+
+Features:
+    - Level change.
+    - Enemy spawn.
+    - Coin collection.
+    - Minion logic:
+        - Movement.
+        - Healing.
+        - Attacking.
+        - follow
+    - Minion Spawn:
+        - The minion that the player can spawn in will be selectable from the banner item
+    - Patrol implementation
+    - Player death
+    - Proyectiles
+
+
+Refactoring:
+    - Maps:
+        - Insted of having the maps in the global space the draw function and collision function should take the maps
+            as a pointer to allow different maps to be loaded.
+
+
+Level edtitor:
+    - Not even sure how to approach this
+
+Fixes:
+    - Enemy playing hurt animation twice when attacked:
+        - This does not happen all the time, I need to isolate the issue
+    - Full/Windowned screen: Currenly I can change from windowed to full screen but not back since I am passing stuff as pointer
