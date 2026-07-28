@@ -44,7 +44,9 @@ int main(void)
     GameState gameState;
     if(InitGameState(&gameState) != 0) return 1;
     SetTargetFPS(gameState.targetFps);
-    
+
+    MapEditor editor;
+    InitEditor(tileSet,&editor,0.2f);
 
     while(!WindowShouldClose())
     {
@@ -66,7 +68,7 @@ int main(void)
             }
             else if (gameState.State == GAME_STATE_IN_EDITOR)
             {
-                InitEditor(window, tileSet);
+                ProcessEditor(&editor,window);
             }
             
         EndDrawing();
