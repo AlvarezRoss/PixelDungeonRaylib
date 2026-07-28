@@ -23,7 +23,10 @@ Refactoring:
 
 
 Level edtitor:
-    - Not even sure how to approach this
+    - The level editor is "functional" I just need to a way to let the player use the created map.
+    - Adding more layers
+    - Adding enemies to the map
+    - FINISH THE DOCUMENTATION!!!!!!
 
 Fixes:
     - Enemy playing hurt animation twice when attacked:
