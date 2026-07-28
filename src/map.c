@@ -282,3 +282,11 @@ bool CheckCollisionObject(int x, int y)
 
     return false;
 }
+
+Rectangle GetTileSrcRect(TILES tile)
+{
+    if (tile < 0) return (Rectangle){0,0,0,0};
+    int col = tile % TILESETCOLS;
+    int row = tile / TILESETCOLS;
+    return (Rectangle){TILESIZE*col,TILESIZE*row,TILESIZE,TILESIZE};
+}

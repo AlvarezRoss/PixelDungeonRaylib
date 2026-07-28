@@ -6,6 +6,7 @@
 #define TILESIZE 16
 #define MAPWIDTH 25
 #define MAPLEN 26
+#define TILESETCOLS 10
 
 
 typedef struct TileSet
@@ -189,5 +190,6 @@ void HandleCollisionDirection(Element* element, Character* character);
 void DrawObjectLayer(LevelData* levelData, TileSet* tileSet, Character* player);
 void HandlePlayerInteraction(Element* element, Character* player, int x, int y);
 bool CheckCollisionObject(int x, int y);
+Rectangle GetTileSrcRect(TILES tile);
 
 #endif
