@@ -24,7 +24,6 @@ Refactoring:
 
 Level edtitor:
     - The level editor is "functional" I just need to a way to let the player use the created map.
-    - Adding more layers
     - Adding enemies to the map
     - FINISH THE DOCUMENTATION!!!!!!
 
