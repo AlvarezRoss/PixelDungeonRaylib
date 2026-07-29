@@ -12,7 +12,8 @@ typedef struct MapEditor
 {
     int selectedTileIndex;
     int selectedMapIndex;
-    int map[MAPWIDTH][MAPLEN];
+    int map[2][MAPWIDTH][MAPLEN];
+    int drawLayer;
     float mapSize;
     EditorState state;
     TileSet* tileSet;
@@ -28,4 +29,5 @@ void DrawTileSelector(MapEditor* mapEditor);
 void HandleTileSelection(Rectangle* tile, int tileIndex, MapEditor* editor);
 void DrawMainPanel(MapEditor* mapEditor);
 void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile);
+void HandleSelectLayer(MapEditor *mapEditor);
 #endif

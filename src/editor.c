@@ -11,6 +11,7 @@ void InitEditor(TileSet* tileSet,MapEditor* mapEditor, float mainPanelPosition)
     mapEditor->tileSet = tileSet;
     mapEditor->mainPanelPosition = mainPanelPosition;
     memset(&mapEditor->map,-1,sizeof(mapEditor->map));
+    mapEditor->drawLayer = 0; // draws on the first layer
 
 }
 
@@ -84,7 +85,6 @@ void DrawTileSelector(MapEditor* mapEditor)
 {
     if (mapEditor == NULL) return;
     int columns = 10;
-
     float tileSize = mapEditor->sidePanel.width / (float)columns;
 
     for (int i = 0; i < TOTAL_TILES; i++)
@@ -117,37 +117,58 @@ void HandleTileSelection(Rectangle* tile, int tileIndex, MapEditor* mapEditor)
 void DrawMainPanel(MapEditor* mapEditor)
 {
     if (mapEditor == NULL) return;
-
-    float tileSize = mapEditor->mainPanel.width/MAPLEN;
-    for(int i = 0; i < MAPWIDTH; i++)
+    float tileWidth = mapEditor->mainPanel.width/MAPWIDTH;
+    float tileLen = mapEditor->mainPanel.height/MAPLEN;  
+    float tileSize = fminf(tileWidth,tileLen);
+    //float tileSize = mapEditor->mainPanel.width/MAPLEN;
+    for (int layer = 0; layer < 2; layer++)
     {
-        for(int g = 0; g < MAPLEN; g++)
+        for(int i = 0; i < MAPWIDTH; i++)
         {
-            Rectangle tile = {
-                mapEditor->mainPanel.x + g * tileSize,
-                mapEditor->mainPanel.y + i * tileSize,
-                tileSize,
-                tileSize
-            };
-            
-            HandlePlaceTile(mapEditor,g,i,&tile);
-            DrawRectangleLinesEx(tile,1,(Color){0,0,102,255});
-            if(mapEditor->map[i][g] != -1) DrawTexturePro(mapEditor->tileSet->map,GetTileSrcRect(mapEditor->map[i][g]),tile,(Vector2){0,0},0,WHITE);
+            for(int g = 0; g < MAPLEN; g++)
+            {
+                Rectangle tile = {
+                    mapEditor->mainPanel.x + g * tileSize,
+                    mapEditor->mainPanel.y + i * tileSize,
+                    tileSize,
+                    tileSize
+                };
+                HandleSelectLayer(mapEditor);
+                HandlePlaceTile(mapEditor,g,i,&tile);
+                DrawRectangleLinesEx(tile,1,(Color){0,0,102,255});
+                if(mapEditor->map[layer][i][g] != -1) DrawTexturePro(mapEditor->tileSet->map,GetTileSrcRect(mapEditor->map[layer][i][g]),tile,(Vector2){0,0},0,WHITE);
+            }
         }
     }
 }
 
 void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile)
 {
-    if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
-        mapEditor->map[y][x] = mapEditor->selectedTileIndex;
-        printf("Tile in position x: %d , y: %d is -> %d \n",x,y,mapEditor->selectedTileIndex);
+        mapEditor->map[mapEditor->drawLayer][y][x] = mapEditor->selectedTileIndex;
+        printf("Tile of layer: %d in position x: %d , y: %d is -> %d \n",mapEditor->drawLayer,x,y,mapEditor->selectedTileIndex);
         return;
     }
-    if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+    if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
-        mapEditor->map[y][x] = -1;
+        mapEditor->map[mapEditor->drawLayer][y][x] = -1;
+        return;
+    }
+}
+
+void HandleSelectLayer(MapEditor *mapEditor)
+{
+    if (mapEditor == NULL) return;
+
+    if (IsKeyDown(KEY_C))
+    {
+        mapEditor->drawLayer = 0;
+        return;
+    }
+    if (IsKeyDown(KEY_V))
+    {
+        mapEditor->drawLayer = 1;
         return;
     }
 }
