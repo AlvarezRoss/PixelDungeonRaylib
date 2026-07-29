@@ -7,3 +7,4 @@ game
 *.d
 build/
 game.exe
+.VsCodeCounter
