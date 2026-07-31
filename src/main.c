@@ -4,11 +4,11 @@
 #include "enemyBehaviours.h"
 #include "editor.h"
 
-int InitPlayer(Character* player);
+int InitPlayer(Character* player, Graphics* graphics);
 void DeinitPlayer(Character* player);
 void PlayerMovement(Character* player);
 void EnemyMovement(Character* enemy, Character* player);
-int InitEnemy(Character* enemy, char* enemyType);
+int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics);
 void EnemyAttack(Character* enemy, Character* player);
 void UpdateCharacterPosition(Character* character);
 void HandlePlayerAttack(Character* player, Character* enemies);
@@ -20,20 +20,25 @@ int main(void)
 {
     Rectangle window = {0,0,WINDOWED_MODE_SIZE,WINDOWED_MODE_SIZE};    
     InitWindow(window.height,window.width,"My first Window");
-
+    Graphics knightGraphics;
+    Graphics orcGraphics;
+    Graphics skelletonGraphics;
+    InitGraphics(&knightGraphics,ENTITY_PLAYER);
+    InitGraphics(&orcGraphics,ENTITY_ORC);
+    InitGraphics(&skelletonGraphics,ENTITY_SKELLETON);
     TileSet* tileSet = malloc(sizeof(TileSet));
     Character player;
     Character enemies[ENEMIES_IN_LEVEL_ONE];
     LevelData levelData;
     levelData.initPosition = (Vector2){300,300};
-    if (InitPlayer(&player) != 0) return 1;
+    if (InitPlayer(&player,&knightGraphics) != 0) return 1;
     if (InitiTileSet(tileSet) != 0) return 1;
     
 
     player.Postion.y = levelData.initPosition.y - 20;
     player.Postion.x = levelData.initPosition.x + 20;
 
-    if (InitEnemy(&enemies[0],"orc") != 0) return 1;
+    if (InitEnemy(&enemies[0],ENTITY_ORC,&orcGraphics) != 0) return 1;
 
     enemies[0].Postion.y = levelData.initPosition.y - 10;
     enemies[0].Postion.x = levelData.initPosition.x + 30;
@@ -82,6 +87,10 @@ int main(void)
     DeinitPlayer(&enemies[0]); // Unsure if I need to have another function for enemy characters or just rename the function
     DeInitTileSet(tileSet);
     tileSet = NULL;
+    DeinitEditor(&editor);
+    DeinitGraphics(&knightGraphics);
+    DeinitGraphics(&orcGraphics);
+    DeinitGraphics(&skelletonGraphics);
     CloseWindow();
     
     return 0;    
@@ -108,32 +117,24 @@ void ProcGameLoop(Character* player, Character* enemies, LevelData* levelData, T
 }
 void DrawGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies)
 {
-    ClearBackground((Color){37,19,26,255});
-            
+    ClearBackground((Color){37,19,26,255});        
     BeginMode2D(*camera);
         DrawGroundLayer(levelData,tileSet);
         DrawObjectLayer(levelData,tileSet,player); // for now I need to pass the a player pointer... PENDING REFACTOR
-        DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
-        DrawTextureRec(player->animation->texture,player->animation->frameRect,player->Postion,WHITE);
+       // DrawTextureRec(enemies[0].animation->texture,enemies[0].animation->frameRect,enemies[0].Postion,WHITE);
+       // DrawTextureRec(player->animation->texture,player->animation->frameRect,player->Postion,WHITE);
+
+       DrawTextureRec(enemies[0].animation->texture,HandleCharacterRotation(&enemies[0]),enemies[0].Postion,WHITE);
+       DrawTextureRec(player->animation->texture,HandleCharacterRotation(player),player->Postion,WHITE);
     EndMode2D();
 }
 /*
     We use different init functions for the player and the enemies to handle the specefic paths to the different animation sprites
 */
-int InitPlayer(Character* player)
+int InitPlayer(Character* player, Graphics* graphics)
 {
-    Animation* idleAnimation = malloc(sizeof(Animation));
-    Animation* walkingAnimation = malloc(sizeof(Animation));
-    Animation* attackAnimation = malloc(sizeof(Animation));
-    Animation* hurtAnimation = malloc(sizeof(Animation));
-    Animation* deathAnimation = malloc(sizeof(Animation));
-
-    if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Idle.png",6) != 0) return 1;
-    if (InitAnimation(walkingAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Walk.png",8) != 0) return 1;
-    if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Attack01.png", 7) != 0) return 1;
-    if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Hurt.png",4) != 0) return 1;
-    if (InitAnimation(deathAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Death.png",4) != 0) return 1;
-    if (InitCharacter(player,idleAnimation, walkingAnimation, attackAnimation, hurtAnimation, deathAnimation) != 0) return 1;
+    if (player == NULL || graphics == NULL) return -1;
+    if (InitCharacter(player,graphics) != 0) return -1;
     player->entityType = ENTITY_PLAYER;
     player->maxHealth = 40;
     player->health = player->maxHealth;
@@ -141,29 +142,15 @@ int InitPlayer(Character* player)
     return 0;
 }
 
-int InitEnemy(Character* enemy, char* enemyType)
+int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics)
 { // If this funtion returns 1 the program will quit so I don't call free on allocated memory
-    if (enemy == NULL || enemyType == NULL) return 1;
-    //if (strcmp(enemyType,"") != 0) return 1;
-
-    Animation* idleAnimation = malloc(sizeof(Animation));
-    Animation* walkAnimation = malloc(sizeof(Animation));
-    Animation* attackAnimation = malloc(sizeof(Animation));
-    Animation* hurtAnimation = malloc(sizeof(Animation));
-    Animation* deathAnimation = malloc(sizeof(Animation));
+    if (enemy == NULL) return -1;
     enemy->attackTimer = malloc(sizeof(Timer));
     if (enemy->attackTimer == NULL) return 1;
+    if (enemy == NULL || graphics == NULL) return -1;
+    if (InitCharacter(enemy,graphics) != 0) return -1;
 
-    // TODO -- ENEMY TYPES!!!
-
-    if (InitAnimation(idleAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Idle.png",6) != 0) return 1;
-    if (InitAnimation(walkAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Walk.png",8) != 0) return 1;
-    if (InitAnimation(attackAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Attack01.png",6) != 0) return 1;
-    if (InitAnimation(hurtAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Hurt.png",4) != 0) return 1;
-    if (InitAnimation(deathAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Death.png",4) != 0) return 1; 
-    if (InitCharacter(enemy,idleAnimation,walkAnimation,attackAnimation,hurtAnimation,deathAnimation) != 0) return 1;
-
-    enemy->entityType = ENTITY_ORC;
+    enemy->entityType = entity;
     enemy->entityState = STATE_IDLE;
     enemy->detectionArea.center = (Vector2){enemy->collisionRect.x,enemy->collisionRect.y};
     enemy->detectionArea.radius = 50.0f;
@@ -177,18 +164,7 @@ int InitEnemy(Character* enemy, char* enemyType)
 void DeinitPlayer(Character* player)
 {
     if (player == NULL) return;
-
     player->animation = NULL;
-
-    UnloadTexture(player->idleAnimation->texture);
-    UnloadTexture(player->attackAnimation->texture);
-    UnloadTexture(player->walkingAnimation->texture);
-    UnloadTexture(player->hurtAnimation->texture);
-    
-    free(player->idleAnimation);
-    free(player->attackAnimation);
-    free(player->walkingAnimation);
-    free(player->hurtAnimation);
     if (player->attackTimer != NULL) free(player->attackTimer);
 }
 
@@ -201,19 +177,19 @@ void PlayerMovement(Character* player)
     if (GetKeyPressed() == 0 && player->entityState != STATE_ATTACKING)
     {
         player->entityState = STATE_IDLE;
-        if (player->animation != player->idleAnimation) player->animation = player->idleAnimation;
+        if (player->animation != player->graphics->idleAnimation) player->animation = player->graphics->idleAnimation;
     }
     // MOVEMENT
     if (IsKeyDown(KEY_A) && player->entityState != STATE_ATTACKING)
     {
-        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        if (player->animation != player->graphics->walkingAnimation) player->animation = player->graphics->walkingAnimation;
         player->entityState = STATE_WALKING;
         player->speed.x = -1;
         if (!player->rotated) player->rotated = true;
     }
     else if (IsKeyDown(KEY_D) && player->entityState != STATE_ATTACKING)
     {
-        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        if (player->animation != player->graphics->walkingAnimation) player->animation = player->graphics->walkingAnimation;
         player->entityState = STATE_WALKING;
         player->speed.x = 1;
         if (player->rotated) player->rotated = false;
@@ -226,13 +202,13 @@ void PlayerMovement(Character* player)
 
     if (IsKeyDown(KEY_W) && player->entityState != STATE_ATTACKING)
     {
-        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        if (player->animation != player->graphics->walkingAnimation) player->animation = player->graphics->walkingAnimation;
         player->entityState = STATE_WALKING;
         player->speed.y = -1;
     }
     else if (IsKeyDown(KEY_S) && player->entityState != STATE_ATTACKING)
     {
-        if (player->animation != player->walkingAnimation) player->animation = player->walkingAnimation;
+        if (player->animation != player->graphics->walkingAnimation) player->animation = player->graphics->walkingAnimation;
         player->entityState = STATE_WALKING;
         player->speed.y = 1;
     }
@@ -260,7 +236,7 @@ void EnemyMovement(Character* enemy, Character* player)
         
     if (enemy->entityState == STATE_IDLE)
     {
-        if (enemy->animation != enemy->idleAnimation) enemy->animation = enemy->idleAnimation;
+        if (enemy->animation != enemy->graphics->idleAnimation) enemy->animation = enemy->graphics->idleAnimation;
         enemy->speed = (Vector2){0.0f,0.0f};
         return;
     }
@@ -280,9 +256,9 @@ void EnemyAttack(Character* enemy, Character* player) // TODO- IMPLEMENTING HIT 
     {
         enemy->entityState = STATE_ATTACKING;
         FacePlayer(player,enemy);
-        if (enemy->animation != enemy->attackAnimation)
+        if (enemy->animation != enemy->graphics->attackAnimation)
         {
-            enemy->animation = enemy->attackAnimation;
+            enemy->animation = enemy->graphics->attackAnimation;
             TakeDamage(player,1);
         } 
         
@@ -304,7 +280,7 @@ void HandlePlayerAttack(Character* player, Character* enemies)
     if (player->entityState == STATE_DEAD) return;
     if (IsKeyPressed(KEY_ENTER) && player->entityState != STATE_ATTACKING)
     {
-        if (player->animation != player->attackAnimation) player->animation = player->attackAnimation;
+        if (player->animation != player->graphics->attackAnimation) player->animation = player->graphics->attackAnimation;
         player->entityState = STATE_ATTACKING;
         player->speed = (Vector2){0,0};
 
@@ -337,12 +313,12 @@ void TakeDamage(Character* character, int damage)
     if (character->health <= 0)
     {
         character->entityState = STATE_DEAD;
-       if (character->animation != character->deathAnimation) character->animation = character->deathAnimation;
+       if (character->animation != character->graphics->deathAnimation) character->animation = character->graphics->deathAnimation;
     }
 
     else
     {
-        if (character->animation != character->hurtAnimation) character->animation = character->hurtAnimation;
+        if (character->animation != character->graphics->hurtAnimation) character->animation = character->graphics->hurtAnimation;
     }
 
 }
