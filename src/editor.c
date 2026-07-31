@@ -5,14 +5,34 @@
     It sets the position of the main pannel as a percet pont (0.2f) in this case
     It also sets the entire map array to -1 which will make the draw function ignore it - see below
 */
-void InitEditor(TileSet* tileSet,MapEditor* mapEditor, float mainPanelPosition)
+int InitEditor(TileSet* tileSet,MapEditor* mapEditor, float mainPanelPosition)
 {
-    if (tileSet == NULL || mapEditor == NULL) return;
+    if (tileSet == NULL || mapEditor == NULL) return -1;
     mapEditor->tileSet = tileSet;
     mapEditor->mainPanelPosition = mainPanelPosition;
     memset(&mapEditor->map,-1,sizeof(mapEditor->map));
+    memset(&mapEditor->entities,-1,sizeof(mapEditor->entities));
+    mapEditor->currentEntityCount = 0;
     mapEditor->drawLayer = 0; // draws on the first layer
+    mapEditor->entityTile = malloc(sizeof(TileSet));
+    if (InitEntityTileset(mapEditor) < 0) return -1;
 
+    return 0;
+}
+
+int InitEntityTileset(MapEditor* mapEditor)
+{
+    if (mapEditor == NULL) return -1;
+
+    mapEditor->entityTile->tileSetImage = LoadImage("Assets/CharacterSelector16x16.png");
+    if (mapEditor->entityTile->tileSetImage.data == NULL) return -1;
+
+    mapEditor->entityTile->map = LoadTextureFromImage(mapEditor->entityTile->tileSetImage);
+    UnloadImage(mapEditor->entityTile->tileSetImage);
+
+    if (mapEditor->entityTile->map.id == 0) return -1;
+    mapEditor->entityTile->tileMapSize = (Rectangle){0,0,90,20};
+    return 0;
 }
 
 /*
@@ -27,8 +47,9 @@ void ProcessEditor(MapEditor* mapEditor, Rectangle window) // We pass the window
     ClearBackground((Color){37,19,26,255});
     DrawRectangleRec(mapEditor->sidePanel,(Color){51,0,0,255});
     DrawRectangleRec(mapEditor->mainPanel, (Color){0,0,51,255});
-    DrawTileSelector(mapEditor);
     DrawMainPanel(mapEditor);
+    if (mapEditor->drawLayer == 2) DrawEntitySelector(mapEditor);
+    else DrawTileSelector(mapEditor);
     return;
 }
 /*
@@ -100,6 +121,27 @@ void DrawTileSelector(MapEditor* mapEditor)
     }
 }
 
+void DrawEntitySelector(MapEditor* mapEditor)
+{
+    if (mapEditor == NULL) return;
+
+    int columns = 3;
+    float tileSize = mapEditor->sidePanel.width/(float)columns;
+
+    for (int i = 0; i < ENTITY_TOTAL; i++)
+    {
+        int row = i / columns;
+        int col = i % columns;
+        Rectangle tile = {mapEditor->sidePanel.x + col * tileSize,mapEditor->sidePanel.y + row*tileSize,tileSize,tileSize};
+        DrawRectangleRec(tile,(Color){0,0,102,255});
+        Rectangle src = {TILESIZE*col,0,TILESIZE,TILESIZE};
+        DrawTexturePro(mapEditor->entityTile->map,src,tile,(Vector2){0,0},0,WHITE);
+        DrawRectangleLinesEx(tile,1,(Color){0,0,51,255});
+        HandleTileSelection(&tile,i,mapEditor);
+    }
+
+}
+
 void HandleTileSelection(Rectangle* tile, int tileIndex, MapEditor* mapEditor)
 {
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) return;
@@ -121,7 +163,7 @@ void DrawMainPanel(MapEditor* mapEditor)
     float tileLen = mapEditor->mainPanel.height/MAPLEN;  
     float tileSize = fminf(tileWidth,tileLen);
     //float tileSize = mapEditor->mainPanel.width/MAPLEN;
-    for (int layer = 0; layer < 2; layer++)
+    for (int layer = 0; layer < 3; layer++)
     {
         for(int i = 0; i < MAPWIDTH; i++)
         {
@@ -134,9 +176,15 @@ void DrawMainPanel(MapEditor* mapEditor)
                     tileSize
                 };
                 HandleSelectLayer(mapEditor);
+                //if (mapEditor->drawLayer != 3)
                 HandlePlaceTile(mapEditor,g,i,&tile);
+
                 DrawRectangleLinesEx(tile,1,(Color){0,0,102,255});
-                if(mapEditor->map[layer][i][g] != -1) DrawTexturePro(mapEditor->tileSet->map,GetTileSrcRect(mapEditor->map[layer][i][g]),tile,(Vector2){0,0},0,WHITE);
+                if(mapEditor->map[layer][i][g] != -1) 
+                {
+                    if(layer != 2) DrawTexturePro(mapEditor->tileSet->map,GetTileSrcRect(mapEditor->map[layer][i][g]),tile,(Vector2){0,0},0,WHITE);
+                    else DrawTexturePro(mapEditor->entityTile->map,GetTileSrcRect(mapEditor->map[layer][i][g]),tile,(Vector2){0,0},0,WHITE);
+                }    
             }
         }
     }
@@ -157,6 +205,11 @@ void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile)
     }
 }
 
+// void HandlePlaceEntity(MapEditor* mapEditor, int x, int y, Rectangle* tile)
+// {
+//     return;
+// }
+
 void HandleSelectLayer(MapEditor *mapEditor)
 {
     if (mapEditor == NULL) return;
@@ -171,4 +224,15 @@ void HandleSelectLayer(MapEditor *mapEditor)
         mapEditor->drawLayer = 1;
         return;
     }
+    if (IsKeyDown(KEY_B))
+    {
+        mapEditor->drawLayer = 2;
+        return;
+    }
+}
+void DeinitEditor(MapEditor* MapEditor)
+{
+    UnloadTexture(MapEditor->entityTile->map);
+    free(MapEditor->entityTile);
+    MapEditor->entityTile = NULL;
 }
