@@ -25,6 +25,25 @@ typedef struct Animation{
     bool rotated; // if character is rotated and animation isn't then we rotate the animation
 }Animation;
 
+typedef enum ENTITY_TYPE
+{
+    ENTITY_PLAYER,
+    ENTITY_ORC,
+    ENTITY_SKELLETON,
+
+    ENTITY_TOTAL
+    
+}ENTITY_TYPE;
+
+typedef struct CharacterGraphics
+{
+    Animation* idleAnimation;
+    Animation* walkingAnimation;
+    Animation* attackAnimation;
+    Animation* hurtAnimation;
+    Animation* deathAnimation;
+} Graphics;
+
 typedef struct Area{
     Vector2 center;
     float radius;
@@ -44,12 +63,7 @@ typedef struct GameState
     int targetFps;
 } GameState;
 
-typedef enum ENTITY_TYPE
-{
-    ENTITY_PLAYER,
-    ENTITY_ORC,
-    
-}ENTITY_TYPE;
+
 
 typedef enum ENTITY_STATE
 {
@@ -72,11 +86,12 @@ typedef struct Timer
 typedef struct Character{
     Vector2 Postion;
     Animation* animation;
-    Animation* idleAnimation;
-    Animation* walkingAnimation;
-    Animation* attackAnimation;
-    Animation* hurtAnimation;
-    Animation* deathAnimation;
+    Graphics* graphics;
+    // Animation* idleAnimation;
+    // Animation* walkingAnimation;
+    // Animation* attackAnimation;
+    // Animation* hurtAnimation;
+    // Animation* deathAnimation;
     Timer* attackTimer;
     ENTITY_TYPE entityType;
     ENTITY_STATE entityState;
@@ -92,9 +107,11 @@ typedef struct Character{
 
 int InitAnimation(Animation* animation, const char* path, int frameNumber);
 void DeinitAnimation(Animation* animation); // DELETE MAYBE?
-int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation, Animation* deathAnimation);
+int InitGraphics(Graphics* graphics,ENTITY_TYPE entity);
+void DeinitGraphics(Graphics* graphics);
+int InitCharacter(Character* character, Graphics* graphics);
 void UpdateCharacterAnimation(Character* character);
-void HandleCharacterRotation(Character* character);
+Rectangle HandleCharacterRotation(Character* character);
 int InitCamera(Camera2D* camera, Character* player, Rectangle window); // Pass by value of the window rectangle is deliverate 
 void UpdateCharacterCamera(Camera2D* camera, Character* player);
 void StartTimer(Timer* timer, float lifetime);

@@ -23,16 +23,12 @@ int InitAnimation(Animation* animation, const char* path, int frameNumber)
 }
 
 
-int InitCharacter(Character* character, Animation* idleAnimation, Animation* walkAnimation, Animation* attackAnimation, Animation* hurtAnimation, Animation* deathAnimation)
+int InitCharacter(Character* character, Graphics* graphics)
 {
-    if(character == NULL || idleAnimation == NULL || walkAnimation == NULL || attackAnimation == NULL || hurtAnimation == NULL) return 1;
+    if(character == NULL || graphics == NULL) return -1;
 
-    character->idleAnimation = idleAnimation;
-    character->walkingAnimation = walkAnimation;
-    character->attackAnimation = attackAnimation;
-    character->hurtAnimation = hurtAnimation;
-    character->deathAnimation = deathAnimation;
-    character->animation = character->idleAnimation;
+    character->graphics = graphics;
+    character->animation = character->graphics->idleAnimation;
     character->entityState = STATE_IDLE;
     character->health = 40;
     character->speed = (Vector2){0,0};
@@ -68,20 +64,12 @@ void UpdateCharacterAnimation(Character* character)
     }   
 }
 
-void HandleCharacterRotation(Character* character)
+Rectangle HandleCharacterRotation(Character* character)
 {
     // To "Turn a sprite around" we shift the width from positive to negative
-    if (character->rotated && !character->animation->rotated)
-    {
-        character->animation->frameRect.width = -character->animation->frameRect.width;
-
-        character->animation->rotated = true;
-    }
-    else if (!character->rotated && character->animation->rotated)
-    {
-        character->animation->frameRect.width = - character->animation ->frameRect.width;
-        character->animation->rotated = false;
-    }
+    Rectangle animCopy = character->animation->frameRect;
+    if (character->rotated) animCopy.width = - character->animation->frameRect.width;
+    return animCopy;
 }
 
 // In these two functions I have set the camera to be the characters position + 50 or 40. They are of yet arbitrary numbers that look good for now
@@ -176,4 +164,64 @@ int GameStateInputHandle(GameState* gameState)
     }
 
     return 0;
+}
+
+int InitGraphics(Graphics* graphics, ENTITY_TYPE entity)
+{
+    if (graphics == NULL) return -1;
+    graphics->idleAnimation = malloc(sizeof(Animation));
+    if (graphics->idleAnimation == NULL) return -1;
+    graphics->walkingAnimation = malloc(sizeof(Animation));
+    if (graphics->walkingAnimation == NULL) return -1;
+    graphics->attackAnimation = malloc(sizeof(Animation));
+    if (graphics->attackAnimation == NULL) return -1;
+    graphics->deathAnimation = malloc(sizeof(Animation));
+    if (graphics->deathAnimation == NULL) return -1;
+    graphics->hurtAnimation = malloc(sizeof(Animation));
+    if (graphics->hurtAnimation == NULL) return -1;
+
+    switch (entity)
+    {
+    case ENTITY_PLAYER:
+        if (InitAnimation(graphics->idleAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Idle.png",6) != 0) return -1;
+        if (InitAnimation(graphics->walkingAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Walk.png",8) != 0) return -1;
+        if (InitAnimation(graphics->attackAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Attack01.png", 7) != 0) return -1;
+        if (InitAnimation(graphics->hurtAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Hurt.png",4) != 0) return -1;
+        if (InitAnimation(graphics->deathAnimation,"Assets/Characters/Characters(100x100)/Knight/Knight/Knight-Death.png",4) != 0) return -1;
+        break;
+    case ENTITY_ORC:
+        if (InitAnimation(graphics->idleAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Idle.png",6) != 0) return -1;
+        if (InitAnimation(graphics->walkingAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Walk.png",8) != 0) return -1;
+        if (InitAnimation(graphics->attackAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Attack01.png",6) != 0) return -1;
+        if (InitAnimation(graphics->hurtAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Hurt.png",4) != 0) return -1;
+        if (InitAnimation(graphics->deathAnimation,"Assets/Characters/Characters(100x100)/Orc/Orc/Orc-Death.png",4) != 0) return -1;
+        break;
+    
+    case ENTITY_SKELLETON:
+        if (InitAnimation(graphics->idleAnimation,"Assets/Characters/Characters(100x100)/Skeleton/Skeleton/Skeleton-Idle.png",6)) return -1;
+        if (InitAnimation(graphics->walkingAnimation,"Assets/Characters/Characters(100x100)/Skeleton/Skeleton/Skeleton-Walk.png",8)) return -1;
+        if (InitAnimation(graphics->attackAnimation,"Assets/Characters/Characters(100x100)/Skeleton/Skeleton/Skeleton-Attack01.png",6)) return -1;
+        if (InitAnimation(graphics->hurtAnimation,"Assets/Characters/Characters(100x100)/Skeleton/Skeleton/Skeleton-Hurt.png",4)) return -1;
+        if (InitAnimation(graphics->deathAnimation,"Assets/Characters/Characters(100x100)/Skeleton/Skeleton/Skeleton-Death.png",4)) return -1;
+        break;
+    default:
+        return -1;
+    }
+    
+    return 0;
+}
+
+void DeinitGraphics(Graphics* graphics)
+{
+    UnloadTexture(graphics->idleAnimation->texture);
+    UnloadTexture(graphics->walkingAnimation->texture);
+    UnloadTexture(graphics->attackAnimation->texture);
+    UnloadTexture(graphics->hurtAnimation->texture);
+    UnloadTexture(graphics->deathAnimation->texture);
+
+    free(graphics->idleAnimation);
+    free(graphics->walkingAnimation);
+    free(graphics->attackAnimation);
+    free(graphics->hurtAnimation);
+    free(graphics->deathAnimation);
 }
