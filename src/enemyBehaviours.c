@@ -11,13 +11,13 @@ void ChasePlayer(Character* enemy, Character* target)
     if (enemy == NULL || target == NULL) return;
     if (enemy->Postion.x > target->Postion.x + 10)
     {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+        if (enemy->animation != enemy->graphics->walkingAnimation) enemy->animation = enemy->graphics->walkingAnimation;
         enemy->speed.x = -0.8;
         if (!enemy->rotated) enemy->rotated = true;
     }
     else if(enemy->Postion.x < target->Postion.x - 10 )
     {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+        if (enemy->animation != enemy->graphics->walkingAnimation) enemy->animation = enemy->graphics->walkingAnimation;
         enemy->speed.x = 0.8;
         if (enemy->rotated) enemy->rotated = false;
     }
@@ -28,13 +28,13 @@ void ChasePlayer(Character* enemy, Character* target)
 
     if (enemy->Postion.y > target->Postion.y + 10)
     {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+        if (enemy->animation != enemy->graphics->walkingAnimation) enemy->animation = enemy->graphics->walkingAnimation;
         enemy->speed.y = -0.8;
     }
 
     else if(enemy->Postion.y < target->Postion.y - 10)
     {
-        if (enemy->animation != enemy->walkingAnimation) enemy->animation = enemy->walkingAnimation;
+        if (enemy->animation != enemy->graphics->walkingAnimation) enemy->animation = enemy->graphics->walkingAnimation;
         enemy->speed.y = 0.8;
     }
 
@@ -45,7 +45,7 @@ void ChasePlayer(Character* enemy, Character* target)
 
     if (TimerFinished(enemy->attackTimer) != 0 && enemy->speed.x == 0 && enemy->speed.y == 0) // This plays the idle animation if the enemy cannot attack and the enemy is close to the player
     {
-        enemy->animation = enemy->idleAnimation;
+        enemy->animation = enemy->graphics->idleAnimation;
     }
 
 }
