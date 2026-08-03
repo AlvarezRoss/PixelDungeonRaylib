@@ -4,17 +4,17 @@
 #include "enemyBehaviours.h"
 #include "editor.h"
 
-int InitPlayer(Character* player, Graphics* graphics);
-void DeinitPlayer(Character* player);
+
 void PlayerMovement(Character* player);
 void EnemyMovement(Character* enemy, Character* player);
-int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics);
 void EnemyAttack(Character* enemy, Character* player);
 void UpdateCharacterPosition(Character* character);
 void HandlePlayerAttack(Character* player, Character* enemies);
 void TakeDamage(Character* character, int damage);
-void ProcGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera);
-void DrawGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies);
+void ProcTestGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera);
+void DrawTestGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies);
+void DrawCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState, Rectangle window);
+void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState);
 
 int main(void)
 {
@@ -31,17 +31,10 @@ int main(void)
     Character enemies[ENEMIES_IN_LEVEL_ONE];
     LevelData levelData;
     levelData.initPosition = (Vector2){300,300};
-    if (InitPlayer(&player,&knightGraphics) != 0) return 1;
+    if (InitPlayer(&player,&knightGraphics,(float)levelData.initPosition.x + 20,(float)levelData.initPosition.y -20) != 0) return 1;
     if (InitiTileSet(tileSet) != 0) return 1;
-    
 
-    player.Postion.y = levelData.initPosition.y - 20;
-    player.Postion.x = levelData.initPosition.x + 20;
-
-    if (InitEnemy(&enemies[0],ENTITY_ORC,&orcGraphics) != 0) return 1;
-
-    enemies[0].Postion.y = levelData.initPosition.y - 10;
-    enemies[0].Postion.x = levelData.initPosition.x + 30;
+    if (InitEnemy(&enemies[0],ENTITY_ORC,&orcGraphics,(float)levelData.initPosition.x +30,(float)levelData.initPosition.y-10) != 0) return 1;
 
     Camera2D camera = {0};
     if (InitCamera(&camera,&player,window) != 0) return 1;
@@ -59,7 +52,11 @@ int main(void)
         GameStateInputHandle(&gameState);
         if (gameState.State == GAME_STATE_RUNNING)
         {
-            ProcGameLoop(&player,enemies,&levelData,tileSet,&camera);
+            ProcTestGameLoop(&player,enemies,&levelData,tileSet,&camera);
+        }
+        else if (gameState.State == GAME_STATE_RUNNING_CUSTOM_MAP)
+        {
+            ProcessCustomMapLoop(&camera,&editor,&gameState);
         }
         
         //-----------------------------------------------------------
@@ -67,15 +64,25 @@ int main(void)
         //-----------------------------------------------------------
         
         BeginDrawing();
-            if (gameState.State == GAME_STATE_RUNNING)
+            switch (gameState.State)
             {
-                DrawGameLoop(&camera,&levelData,tileSet,&player,enemies);
-            }
-            else if (gameState.State == GAME_STATE_IN_EDITOR)
-            {
+            case GAME_STATE_RUNNING:
+                DrawTestGameLoop(&camera,&levelData,tileSet,&player,enemies);
+                break;
+            case GAME_STATE_IN_EDITOR:
                 ProcessEditor(&editor,window);
+                break;
+            case GAME_STATE_UNINITIALIZED_CUSTON_MAP:
+                InitCustomMap(&gameState,&editor,&knightGraphics,&orcGraphics,&skelletonGraphics);
+                break;
+            case GAME_STATE_RUNNING_CUSTOM_MAP:
+                DrawCustomMapLoop(&camera,&editor,&gameState,window);
+
+                break;
+            case GAME_STATE_PAUSED:
+            default:
+                break;
             }
-            
         EndDrawing();
     }
 
@@ -96,7 +103,7 @@ int main(void)
     return 0;    
 }
 
-void ProcGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera)
+void ProcTestGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera)
 {
     PlayerMovement(player);
     HandleGroundCollision(levelData,tileSet,player);
@@ -115,7 +122,7 @@ void ProcGameLoop(Character* player, Character* enemies, LevelData* levelData, T
     HandleCharacterRotation(&enemies[0]);
     UpdateCharacterPosition(&enemies[0]);
 }
-void DrawGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies)
+void DrawTestGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies)
 {
     ClearBackground((Color){37,19,26,255});        
     BeginMode2D(*camera);
@@ -131,42 +138,6 @@ void DrawGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Char
 /*
     We use different init functions for the player and the enemies to handle the specefic paths to the different animation sprites
 */
-int InitPlayer(Character* player, Graphics* graphics)
-{
-    if (player == NULL || graphics == NULL) return -1;
-    if (InitCharacter(player,graphics) != 0) return -1;
-    player->entityType = ENTITY_PLAYER;
-    player->maxHealth = 40;
-    player->health = player->maxHealth;
-    player->attackTimer = NULL;
-    return 0;
-}
-
-int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics)
-{ // If this funtion returns 1 the program will quit so I don't call free on allocated memory
-    if (enemy == NULL) return -1;
-    enemy->attackTimer = malloc(sizeof(Timer));
-    if (enemy->attackTimer == NULL) return 1;
-    if (enemy == NULL || graphics == NULL) return -1;
-    if (InitCharacter(enemy,graphics) != 0) return -1;
-
-    enemy->entityType = entity;
-    enemy->entityState = STATE_IDLE;
-    enemy->detectionArea.center = (Vector2){enemy->collisionRect.x,enemy->collisionRect.y};
-    enemy->detectionArea.radius = 50.0f;
-    enemy->detectionArea.color = BLUE;
-    enemy->attackTimer->lifetime = 0.0f;
-    return 0;
-
-}
-
-
-void DeinitPlayer(Character* player)
-{
-    if (player == NULL) return;
-    player->animation = NULL;
-    if (player->attackTimer != NULL) free(player->attackTimer);
-}
 
 void PlayerMovement(Character* player)
 {
@@ -272,7 +243,7 @@ void UpdateCharacterPosition(Character* character)
     character->Postion.y += character->speed.y;
     character->collisionRect.x = character->Postion.x + (character->animation->frameWidth/2.0f) - 10;
     character->collisionRect.y = character->Postion.y + (character->animation->texture.height/2.0f) - 10;
-}
+}   
 
 void HandlePlayerAttack(Character* player, Character* enemies)
 {
@@ -321,4 +292,37 @@ void TakeDamage(Character* character, int damage)
         if (character->animation != character->graphics->hurtAnimation) character->animation = character->graphics->hurtAnimation;
     }
 
+}
+
+void DrawCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState, Rectangle window)
+{
+    InitCamera(camera,mapEditor->player,window);
+    BeginMode2D(*camera);
+        DrawCustomMap(mapEditor,gameState,window);
+        DrawCustomMapEntities(mapEditor);
+    EndMode2D();
+}
+
+
+void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState)
+{
+    if (camera == NULL || mapEditor == NULL || gameState == NULL) return;
+    if (gameState->State != GAME_STATE_RUNNING_CUSTOM_MAP) return;
+    for (int i = 0; i < mapEditor->entityCount; i++)
+    {
+        if (mapEditor->entities[i].entityType == ENTITY_PLAYER)
+        {
+            PlayerMovement(mapEditor->player);
+            HandlePlayerAttack(mapEditor->player,mapEditor->entities);
+            UpdateCharacterCamera(camera,mapEditor->player);
+        }
+        else
+        {
+            EnemyMovement(&mapEditor->entities[i], mapEditor->player);
+            EnemyAttack(&mapEditor->entities[i], mapEditor->player);
+        }
+
+        UpdateCharacterAnimation(&mapEditor->entities[i]);
+        UpdateCharacterPosition(&mapEditor->entities[i]);
+    }
 }
