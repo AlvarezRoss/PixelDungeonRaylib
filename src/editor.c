@@ -12,9 +12,10 @@ int InitEditor(TileSet* tileSet,MapEditor* mapEditor, float mainPanelPosition)
     mapEditor->mainPanelPosition = mainPanelPosition;
     memset(&mapEditor->map,-1,sizeof(mapEditor->map));
     memset(&mapEditor->entities,-1,sizeof(mapEditor->entities));
-    mapEditor->currentEntityCount = 0;
+    mapEditor->entityCount = 0;
     mapEditor->drawLayer = 0; // draws on the first layer
     mapEditor->entityTile = malloc(sizeof(TileSet));
+    mapEditor->playerInGame = false;
     if (InitEntityTileset(mapEditor) < 0) return -1;
 
     return 0;
@@ -192,17 +193,32 @@ void DrawMainPanel(MapEditor* mapEditor)
 
 void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile)
 {
-    if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    if (mapEditor->drawLayer != 2)
     {
-        mapEditor->map[mapEditor->drawLayer][y][x] = mapEditor->selectedTileIndex;
-        printf("Tile of layer: %d in position x: %d , y: %d is -> %d \n",mapEditor->drawLayer,x,y,mapEditor->selectedTileIndex);
-        return;
+        if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        {
+            mapEditor->map[mapEditor->drawLayer][y][x] = mapEditor->selectedTileIndex;
+            printf("Tile of layer: %d in position x: %d , y: %d is -> %d \n",mapEditor->drawLayer,x,y,mapEditor->selectedTileIndex); 
+            return;
+        }
+        if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+        {
+            mapEditor->map[mapEditor->drawLayer][y][x] = -1;
+            return;
+        }
     }
-    if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+    else if (mapEditor->drawLayer == 2)
     {
-        mapEditor->map[mapEditor->drawLayer][y][x] = -1;
-        return;
+        if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        {
+            if (mapEditor->map[mapEditor->drawLayer][y][x] == mapEditor->selectedTileIndex) return;
+            mapEditor->map[mapEditor->drawLayer][y][x] = mapEditor->selectedTileIndex;
+            AddEntity(mapEditor,tile);
+            printf("Entity Count: %d",mapEditor->entityCount);
+        }
+         
     }
+    
 }
 
 // void HandlePlaceEntity(MapEditor* mapEditor, int x, int y, Rectangle* tile)
@@ -235,4 +251,100 @@ void DeinitEditor(MapEditor* MapEditor)
     UnloadTexture(MapEditor->entityTile->map);
     free(MapEditor->entityTile);
     MapEditor->entityTile = NULL;
+}
+
+// We subtract the Character texture size from the positon to compensate for the targe bkacground the sprites have
+// Each frame is 100x100 pixels while the spirtes are 25x20
+void AddEntity(MapEditor* mapEditor, Rectangle* tile)
+{
+    if (mapEditor == NULL || tile == NULL) return;
+    if (mapEditor->entityCount > MAXENTITIES) return;
+    switch (mapEditor->selectedTileIndex)
+    {
+    case ENTITY_PLAYER:
+        if(mapEditor->playerInGame) break;
+        mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_PLAYER;
+        mapEditor->entities[mapEditor->entityCount].Postion.x = tile->x - mapEditor->sidePanel.width - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].Postion.y = tile->y - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
+        mapEditor->playerInGame = true;
+        mapEditor->player = &mapEditor->entities[mapEditor->entityCount];
+        mapEditor->entityCount ++;
+        break;
+    case ENTITY_ORC:
+        mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_ORC;
+        mapEditor->entities[mapEditor->entityCount].Postion.x = tile->x - mapEditor->sidePanel.width - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].Postion.y = tile->y - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
+        mapEditor->entityCount ++;
+        break;
+    case ENTITY_SKELLETON:
+        mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_ORC;
+        mapEditor->entities[mapEditor->entityCount].Postion.x = tile->x - mapEditor->sidePanel.width - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].Postion.y = tile->y - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
+        mapEditor->entityCount ++;
+        break;
+    default:
+        break;
+    }
+}
+int InitCustomMap(GameState* gameState, MapEditor* mapEditor, Graphics* knightGraphics, Graphics* orcGraphics, Graphics* skelletonGraphics)
+{
+    // I will probably have to unify all grpahics into a single struct
+    if (gameState == NULL || mapEditor == NULL || knightGraphics == NULL || orcGraphics == NULL || skelletonGraphics == NULL) return -1; 
+    if (gameState->State != GAME_STATE_UNINITIALIZED_CUSTON_MAP) return 0;
+
+    for(int i = 0; i < mapEditor->entityCount; i++)
+    {
+        switch (mapEditor->entities[i].entityType)
+        {
+        case ENTITY_PLAYER:
+            InitPlayer(&mapEditor->entities[i],knightGraphics,mapEditor->entities[i].Postion.x,mapEditor->entities[i].Postion.y);
+            break;
+        case ENTITY_ORC:
+            InitEnemy(&mapEditor->entities[i],ENTITY_ORC,orcGraphics,mapEditor->entities[i].Postion.x,mapEditor->entities[i].Postion.y);
+            break;
+        case ENTITY_SKELLETON:
+            InitEnemy(&mapEditor->entities[i],ENTITY_SKELLETON,skelletonGraphics,mapEditor->entities[i].Postion.x,mapEditor->entities[i].Postion.y);
+            break;
+        default:
+            break;
+        }
+    }
+
+    gameState->State = GAME_STATE_RUNNING_CUSTOM_MAP;
+    return 0;
+}
+
+void DrawCustomMap(MapEditor* mapEditor, GameState* gameState, Rectangle window)
+{
+    ClearBackground(BLACK);
+    if (mapEditor == NULL || gameState == NULL || gameState->State != GAME_STATE_RUNNING_CUSTOM_MAP) return;
+    for(int layer = 0; layer < 2; layer++)
+    {
+        for(int i = 0; i < MAPWIDTH; i++)
+        {
+            for(int g = 0; g < MAPLEN; g++)
+            {
+                Rectangle tile = {
+                    window.x + g * TILESIZE,
+                    window.y + i * TILESIZE,
+                    TILESIZE,
+                    TILESIZE
+                };
+
+                if(mapEditor->map[layer][i][g] != -1)
+                 DrawTexturePro(mapEditor->tileSet->map,GetTileSrcRect(mapEditor->map[layer][i][g]),tile,(Vector2){0,0},0,WHITE);
+            }
+        }
+    }
+}
+
+void DrawCustomMapEntities(MapEditor* mapEditor)
+{
+    for (int i = 0 ; i < mapEditor->entityCount; i++)
+    {
+        DrawTextureRec(mapEditor->entities[i].animation->texture,HandleCharacterRotation(&mapEditor->entities[i]),mapEditor->entities[i].Postion,WHITE);
+    }
 }

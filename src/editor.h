@@ -15,7 +15,7 @@ typedef struct MapEditor
     int selectedMapIndex;
     int map[3][MAPWIDTH][MAPLEN];
     int drawLayer;
-    int currentEntityCount;
+    int entityCount;
     float mapSize;
     EditorState state;
     TileSet* tileSet;
@@ -24,6 +24,8 @@ typedef struct MapEditor
     Rectangle sidePanel;
     float mainPanelPosition;
     Character entities[MAXENTITIES];
+    bool playerInGame;
+    Character* player;
 }MapEditor;
 
 int InitEditor(TileSet* tileSet,MapEditor* mapEditor, float mainPanelPosition);
@@ -37,4 +39,8 @@ void DrawMainPanel(MapEditor* mapEditor);
 void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile);
 void HandleSelectLayer(MapEditor *mapEditor);
 void DeinitEditor(MapEditor* MapEditor);
+void AddEntity(MapEditor* mapEditor, Rectangle* tile);
+int InitCustomMap(GameState* gameState, MapEditor* mapEditor, Graphics* knightGraphics, Graphics* orcGraphics, Graphics* skelletonGraphics);
+void DrawCustomMap(MapEditor* mapEditor, GameState* gameState, Rectangle window);
+void DrawCustomMapEntities(MapEditor* mapEditor);
 #endif
