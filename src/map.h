@@ -171,7 +171,7 @@ typedef struct Element
     Rectangle src;
     Rectangle dest;
 }Element;
-
+// Not Really Used...
 typedef struct LevelData{
     int enemyNumber;
     Vector2 initPosition;
