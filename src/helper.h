@@ -12,6 +12,7 @@
 #define SPRITEHEIGHT 16
 #define ENEMIES_IN_LEVEL_ONE 2
 #define WINDOWED_MODE_SIZE 800.0f
+#define CHARACTER_TEXTURE_SIZE 100
 
 
 typedef struct Animation{
@@ -35,6 +36,7 @@ typedef enum ENTITY_TYPE
     
 }ENTITY_TYPE;
 
+// I will probably have to unify all grpahics into a single struct
 typedef struct CharacterGraphics
 {
     Animation* idleAnimation;
@@ -53,7 +55,9 @@ typedef enum GAME_STATE
 {
     GAME_STATE_RUNNING,
     GAME_STATE_PAUSED,
-    GAME_STATE_IN_EDITOR
+    GAME_STATE_IN_EDITOR,
+    GAME_STATE_UNINITIALIZED_CUSTON_MAP,
+    GAME_STATE_RUNNING_CUSTOM_MAP
 } GAME_STATE;
 
 typedef struct GameState
@@ -73,7 +77,8 @@ typedef enum ENTITY_STATE
     STATE_HURT,
     STATE_DEAD,
     STATE_FOLLOWING, // Only used for companions and enemies
-    STATE_PATROL
+    STATE_PATROL,
+    STATE_INACTIVE
 } ENTITY_STATE;
 
 
@@ -87,11 +92,6 @@ typedef struct Character{
     Vector2 Postion;
     Animation* animation;
     Graphics* graphics;
-    // Animation* idleAnimation;
-    // Animation* walkingAnimation;
-    // Animation* attackAnimation;
-    // Animation* hurtAnimation;
-    // Animation* deathAnimation;
     Timer* attackTimer;
     ENTITY_TYPE entityType;
     ENTITY_STATE entityState;
@@ -120,4 +120,7 @@ int TimerFinished(Timer* timer);
 void FullScreen(float* windowWidth, float* windowHeight, Camera2D* camera);
 int InitGameState(GameState* gameState);
 int GameStateInputHandle(GameState* gameState);
+int InitPlayer(Character* player, Graphics* graphics,float x, float y);
+void DeinitPlayer(Character* player);
+int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics,float x, float y);
 #endif

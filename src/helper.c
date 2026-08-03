@@ -7,14 +7,13 @@ int InitAnimation(Animation* animation, const char* path, int frameNumber)
     
     Image image = LoadImage(path);
     if (image.data == NULL) return 1;
-    
     animation->texture = LoadTextureFromImage(image);
     if (animation->texture.id == 0) return 1;
     animation->currentFrame = 0;
     animation->frameCounter = 0;
     // (Rectangle) is a compound literal aka a temporary struct i can create to them assign it to the frameRect
     animation->frameRect = (Rectangle){0.0f,0.0f,(float)animation->texture.width/frameNumber,(float)animation->texture.height};
-    animation->frameSpeed = 10;
+    animation->frameSpeed = 6;
     animation->frameNum = frameNumber;
     animation->frameWidth = (float)animation->texture.width/animation->frameNum;
     animation->rotated = false;
@@ -32,10 +31,8 @@ int InitCharacter(Character* character, Graphics* graphics)
     character->entityState = STATE_IDLE;
     character->health = 40;
     character->speed = (Vector2){0,0};
-    character->Postion = (Vector2){800/2,450/2};
     character->rotated = false;
     character->collisionRect = (Rectangle){character->animation->frameRect.width/2,character->animation->frameRect.height/2,SPRITELEN,SPRITEHEIGHT};
-    
     return 0;
 }
 
@@ -163,6 +160,8 @@ int GameStateInputHandle(GameState* gameState)
         return 0;
     }
 
+    if (IsKeyPressed(KEY_ENTER) && gameState->State == GAME_STATE_IN_EDITOR) gameState->State = GAME_STATE_UNINITIALIZED_CUSTON_MAP;
+
     return 0;
 }
 
@@ -225,3 +224,44 @@ void DeinitGraphics(Graphics* graphics)
     free(graphics->hurtAnimation);
     free(graphics->deathAnimation);
 }
+int InitPlayer(Character* player, Graphics* graphics, float x, float y)
+{
+    if (player == NULL || graphics == NULL) return -1;
+    if (InitCharacter(player,graphics) != 0) return -1;
+    player->entityType = ENTITY_PLAYER;
+    player->maxHealth = 40;
+    player->health = player->maxHealth;
+    player->attackTimer = NULL;
+    player->Postion.x = x;
+    player->Postion.y = y;
+    return 0;
+}
+
+int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics,float x, float y)
+{ // If this funtion returns 1 the program will quit so I don't call free on allocated memory
+    if (enemy == NULL) return -1;
+    enemy->attackTimer = malloc(sizeof(Timer));
+    if (enemy->attackTimer == NULL) return 1;
+    if (enemy == NULL || graphics == NULL) return -1;
+    if (InitCharacter(enemy,graphics) != 0) return -1;
+
+    enemy->entityType = entity;
+    enemy->entityState = STATE_IDLE;
+    enemy->detectionArea.center = (Vector2){enemy->collisionRect.x,enemy->collisionRect.y};
+    enemy->detectionArea.radius = 50.0f;
+    enemy->detectionArea.color = BLUE;
+    enemy->attackTimer->lifetime = 0.0f;
+    enemy->Postion.x = x;
+    enemy->Postion.y = y;
+    return 0;
+
+}
+
+
+void DeinitPlayer(Character* player)
+{
+    if (player == NULL) return;
+    player->animation = NULL;
+    if (player->attackTimer != NULL) free(player->attackTimer);
+}
+
