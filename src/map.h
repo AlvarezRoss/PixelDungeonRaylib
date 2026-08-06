@@ -4,8 +4,8 @@
 #include "helper.h"
 
 #define TILESIZE 16
-#define MAPWIDTH 25
-#define MAPLEN 26
+#define MAPWIDTH 50
+#define MAPLEN 50
 #define TILESETCOLS 10
 
 
