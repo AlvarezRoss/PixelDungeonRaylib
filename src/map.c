@@ -222,8 +222,14 @@ void HandleCollisionDirection(Element* element, Character* character)
 
     collisionBox = GetCollisionRec(element->dest,character->collisionRect);
     // we need the center points of both the element and the character to then compare them and that way determine the direction of the collision
-    Vector2 characterCenter = (Vector2){character->collisionRect.x/2.0f, character->collisionRect.y/2.0f};
-    Vector2 elementCenter = (Vector2){element->dest.x/2.0f, element->dest.y/2.0f};
+    Vector2 characterCenter = (Vector2){
+        character->collisionRect.x + character->collisionRect.width * 0.5f,
+        character->collisionRect.y + character->collisionRect.height * 0.5f
+    };
+    Vector2 elementCenter = (Vector2){
+        element->dest.x + element->dest.width * 0.5f,
+        element->dest.y + element->dest.height * 0.5f
+    };
 
     // Checking if the collision is horizontal
     /* We add or subtract the collision width/height to the position to move the player away from the collision point
@@ -231,15 +237,31 @@ void HandleCollisionDirection(Element* element, Character* character)
     */
     if (collisionBox.width < collisionBox.height)
     {
-        if (elementCenter.x < characterCenter.x) character->Postion.x += collisionBox.width;// collision from the left
-        else if (elementCenter.x > characterCenter.x) character->Postion.x -= collisionBox.width; // collision from the right
+        if (elementCenter.x < characterCenter.x)
+        {
+            character->Postion.x += collisionBox.width;// collision from the left
+            character->collisionRect.x += collisionBox.width;
+        } 
+        else if (elementCenter.x > characterCenter.x)
+        {
+            character->Postion.x -= collisionBox.width; // collision from the right
+            character->collisionRect.x -= collisionBox.width;
+        } 
        
         character->speed.x = 0.0f;
     }
     else
     {
-        if (elementCenter.y < characterCenter.y) character->Postion.y += collisionBox.height;
-        else if (elementCenter.y > characterCenter.y) character->Postion.y -= collisionBox.height;
+        if (elementCenter.y < characterCenter.y)
+        {
+            character->Postion.y += collisionBox.height;
+            character->collisionRect.y += collisionBox.height;
+        } 
+        else if (elementCenter.y > characterCenter.y)
+        {
+            character->Postion.y -= collisionBox.height;
+            character->collisionRect.y -= collisionBox.height;
+        } 
 
         character->speed.y = 0.0f;
     }
