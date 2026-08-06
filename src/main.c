@@ -317,6 +317,7 @@ void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gam
             PlayerMovement(mapEditor->player);
             HandlePlayerAttack(mapEditor->player,mapEditor->entities);
             UpdateCharacterCamera(camera,mapEditor->player);
+            HandlePlayerInteraction(mapEditor->player,mapEditor);
         }
         else
         {
