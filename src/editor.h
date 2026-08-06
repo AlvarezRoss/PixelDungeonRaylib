@@ -45,4 +45,6 @@ void DrawCustomMap(MapEditor* mapEditor, GameState* gameState, Rectangle window)
 void DrawCustomMapEntities(MapEditor* mapEditor);
 void HandleCustomMapCollision(MapEditor* mapEditor, Character* entity, Rectangle window);
 bool IsCollisionObject(int index);
+void UpdateTileIndex(Character* entity, int x, int y);
+void HandlePlayerInteraction(Character* entity, MapEditor* mapEditor);
 #endif

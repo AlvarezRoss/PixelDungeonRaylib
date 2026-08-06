@@ -371,19 +371,28 @@ void HandleCustomMapCollision(MapEditor* mapEditor, Character* entity, Rectangle
             for(int g = 0; g < MAPLEN; g++)
             {
                 bool collisionObject = IsCollisionObject(mapEditor->map[0][i][g]);
-                if (!collisionObject) continue;
-
-
-                element.dest = (Rectangle){
+                 element.dest = (Rectangle){
                     window.x + g * TILESIZE,
                     window.y + i * TILESIZE,
                     TILESIZE,
                     TILESIZE
                 };
-                
-                bool collision = CheckCollisionRecs(element.dest,entity->collisionRect);
-                if (!collision) continue;
-                HandleCollisionDirection(&element,entity);
+
+                if (!collisionObject && entity->entityType == ENTITY_PLAYER)
+                {
+                    bool characterInTile = CheckCollisionPointRec((Vector2)
+                        {entity->collisionRect.x + entity->collisionRect.width/2.0f,
+                        entity->collisionRect.y + entity->collisionRect.height/2.0f},
+                            element.dest);
+                    if (!characterInTile) continue;
+                    UpdateTileIndex(entity,g,i);
+                }
+                else
+                {
+                    bool collision = CheckCollisionRecs(element.dest,entity->collisionRect);
+                    if (!collision) continue;
+                    HandleCollisionDirection(&element,entity);
+                }   
             }
         }
 }
@@ -416,10 +425,45 @@ bool IsCollisionObject(int index)
         case WALL_RIGHT_2:
         case WALL_RIGHT_3:
         case WALL_RIGHT_4:
+        case DOOR_FRONT_1:
+        case DOOR_FRONT_2:
+        case DOOR_FRONT_3:
+        case DOOR_FRONT_4:
+        case LEFT_DOOR_1:
+        case LEFT_DOOR_2:
+        case RIGHT_DOOR_1:
+        case RIGHT_DOOR_2:
+        case RIGHT_DOOR_3:
+        case RIGHT_DOOR_4:
             return true;
             break;
         default:
             return false;
     }
     return false;
+}
+
+void UpdateTileIndex(Character* entity, int x, int y)
+{
+    if (entity == NULL) return;
+    if (entity->editorTileX == x && entity->editorTileY == y) return;
+    entity->editorTileX = x;
+    entity->editorTileY = y;
+}
+
+void HandlePlayerInteraction(Character* entity, MapEditor* mapEditor)
+{
+    if (entity == NULL || mapEditor == NULL) return;
+    if (!IsKeyPressed(KEY_E)) return;
+    if (mapEditor->map[1][entity->editorTileY][entity->editorTileX] == -1)
+    {
+        HandleDoorInteraction(entity,mapEditor);
+    }
+    
+}
+
+void HandleDoorInteraction(Character* entity, MapEditor* mapEditor)
+{
+    if (entity == NULL || mapEditor == NULL) return;
+    return;
 }
