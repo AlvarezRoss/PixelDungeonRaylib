@@ -234,7 +234,7 @@ int InitPlayer(Character* player, Graphics* graphics, float x, float y)
     player->attackTimer = NULL;
     player->Postion.x = x;
     player->Postion.y = y;
-    player->hasDoorKey = false;
+    player->keyCount = 0;
     player->interatcionRect = (Rectangle){player->animation->frameRect.width/2,player->animation->frameRect.height/2,SPRITELEN*2,SPRITEHEIGHT*2};
     return 0;
 }
@@ -265,5 +265,15 @@ void DeinitPlayer(Character* player)
     if (player == NULL) return;
     player->animation = NULL;
     if (player->attackTimer != NULL) free(player->attackTimer);
+}
+
+void IncreaseHealth(Character* entity, int hp)
+{
+    if (entity->health + hp > entity->maxHealth)
+    {
+        entity->health = entity->maxHealth;
+        return;
+    } 
+    entity->health += hp;
 }
 

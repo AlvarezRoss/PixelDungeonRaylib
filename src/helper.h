@@ -105,9 +105,9 @@ typedef struct Character{
     int health;
     int editorTileX; // Used to keep track of the tile index in which they are added in the editor
     int editorTileY;
+    int keyCount; // Used to count how many keys the player has
     bool rotated;
     bool inAttackRange; // Used to determine whcih enemies are within range
-    bool hasDoorKey;
 }Character;
 
 
@@ -129,4 +129,5 @@ int GameStateInputHandle(GameState* gameState);
 int InitPlayer(Character* player, Graphics* graphics,float x, float y);
 void DeinitPlayer(Character* player);
 int InitEnemy(Character* enemy, ENTITY_TYPE entity, Graphics* graphics,float x, float y);
+void IncreaseHealth(Character* entity, int hp);
 #endif
