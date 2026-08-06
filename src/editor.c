@@ -435,13 +435,72 @@ void HandlePlayerInteraction(Character* entity, MapEditor* mapEditor)
     if (mapEditor->map[1][entity->editorTileY][entity->editorTileX] == -1)
     {
         HandleDoorInteraction(entity,mapEditor);
+        return;
     }
+    switch (mapEditor->map[1][entity->editorTileY][entity->editorTileX])
+    {
+    case KEY_1:
+    case KEY_2:
+        entity->keyCount ++;
+        mapEditor->map[1][entity->editorTileY][entity->editorTileX] = -1;
+        break;
+    case HP_BIG:
+        IncreaseHealth(entity,10);
+        mapEditor->map[1][entity->editorTileY][entity->editorTileX] = -1;
+        break;
+    case HP_SMALL_1:
+        IncreaseHealth(entity,5);
+        mapEditor->map[1][entity->editorTileY][entity->editorTileX] = -1;
+        break;
+    case CHEST_1:
+        mapEditor->map[1][entity->editorTileY][entity->editorTileX] = KEY_2;
+        break;
+    case CHEST_2:
+        mapEditor->map[1][entity->editorTileY][entity->editorTileX] = HP_BIG;
+        break;
+    case CHEST_3:
+        mapEditor->map[1][entity->editorTileY][entity->editorTileX] = KEY_1;
+    default:
+        break;
+    }
+
     
 }
 
 void HandleDoorInteraction(Character* entity, MapEditor* mapEditor)
 {
     if (entity == NULL || mapEditor == NULL) return;
+    for (int i = -1; i<= 1; i++)
+    {
+        for (int g = -1; g <= 1; g++)
+        {
+            int currentX = entity->editorTileX + g;
+            int currentY = entity->editorTileY + i;
+            if (currentX < 0 || currentX >= MAPWIDTH) continue;
+            if (currentY < 0 || currentY >= MAPLEN) continue;
+            switch (mapEditor->map[1][currentY][currentX])
+            {
+            case DOOR_FRONT_1:
+            case DOOR_FRONT_2:
+            case DOOR_FRONT_3:
+            case DOOR_FRONT_4:
+            case LEFT_DOOR_1:
+            case LEFT_DOOR_2:
+            case RIGHT_DOOR_1:
+            case RIGHT_DOOR_2:
+            case RIGHT_DOOR_3:
+            case RIGHT_DOOR_4:
+                if(entity->keyCount > 0)
+                {
+                    mapEditor->map[1][currentY][currentX] = -1;
+                    entity->keyCount --;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
     
     return;
 }
