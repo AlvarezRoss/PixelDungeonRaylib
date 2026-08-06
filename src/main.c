@@ -14,7 +14,7 @@ void TakeDamage(Character* character, int damage);
 void ProcTestGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera);
 void DrawTestGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies);
 void DrawCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState, Rectangle window);
-void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState);
+void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState,Rectangle window);
 
 int main(void)
 {
@@ -56,7 +56,7 @@ int main(void)
         }
         else if (gameState.State == GAME_STATE_RUNNING_CUSTOM_MAP)
         {
-            ProcessCustomMapLoop(&camera,&editor,&gameState);
+            ProcessCustomMapLoop(&camera,&editor,&gameState, window);
         }
         
         //-----------------------------------------------------------
@@ -70,7 +70,7 @@ int main(void)
                 DrawTestGameLoop(&camera,&levelData,tileSet,&player,enemies);
                 break;
             case GAME_STATE_IN_EDITOR:
-                ProcessEditor(&editor,window);
+                ProcessEditor(&editor,&window);
                 break;
             case GAME_STATE_UNINITIALIZED_CUSTON_MAP:
                 InitCustomMap(&gameState,&editor,&knightGraphics,&orcGraphics,&skelletonGraphics);
@@ -304,12 +304,14 @@ void DrawCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameSt
 }
 
 
-void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState)
+void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gameState, Rectangle window)
 {
     if (camera == NULL || mapEditor == NULL || gameState == NULL) return;
     if (gameState->State != GAME_STATE_RUNNING_CUSTOM_MAP) return;
     for (int i = 0; i < mapEditor->entityCount; i++)
     {
+        if (mapEditor->entities[i].entityState == STATE_INACTIVE) continue;
+
         if (mapEditor->entities[i].entityType == ENTITY_PLAYER)
         {
             PlayerMovement(mapEditor->player);
@@ -324,5 +326,6 @@ void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gam
 
         UpdateCharacterAnimation(&mapEditor->entities[i]);
         UpdateCharacterPosition(&mapEditor->entities[i]);
+        HandleCustomMapCollision(mapEditor,&mapEditor->entities[i],window);
     }
 }
