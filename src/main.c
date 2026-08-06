@@ -9,7 +9,7 @@ void PlayerMovement(Character* player);
 void EnemyMovement(Character* enemy, Character* player);
 void EnemyAttack(Character* enemy, Character* player);
 void UpdateCharacterPosition(Character* character);
-void HandlePlayerAttack(Character* player, Character* enemies);
+void HandlePlayerAttack(Character* player, Character* enemies, int entityCount);
 void TakeDamage(Character* character, int damage);
 void ProcTestGameLoop(Character* player, Character* enemies, LevelData* levelData, TileSet* tileSet, Camera2D* camera);
 void DrawTestGameLoop(Camera2D* camera, LevelData* levelData, TileSet* tileSet, Character* player, Character* enemies);
@@ -107,7 +107,7 @@ void ProcTestGameLoop(Character* player, Character* enemies, LevelData* levelDat
 {
     PlayerMovement(player);
     HandleGroundCollision(levelData,tileSet,player);
-    HandlePlayerAttack(player,enemies);
+    HandlePlayerAttack(player,enemies,0);
     UpdateCharacterAnimation(player);
     UpdateCharacterPosition(player);
     HandleCharacterRotation(player);
@@ -245,7 +245,7 @@ void UpdateCharacterPosition(Character* character)
     character->collisionRect.y = character->Postion.y + (character->animation->texture.height/2.0f) - 10;
 }   
 
-void HandlePlayerAttack(Character* player, Character* enemies)
+void HandlePlayerAttack(Character* player, Character* enemies, int entityCount)
 {
     if (player == NULL) return;
     if (player->entityState == STATE_DEAD) return;
@@ -255,8 +255,9 @@ void HandlePlayerAttack(Character* player, Character* enemies)
         player->entityState = STATE_ATTACKING;
         player->speed = (Vector2){0,0};
 
-        for (int i = 0; i < ENEMIES_IN_LEVEL_ONE; i++)
+        for (int i = 0; i < entityCount; i++)
         {
+            if (enemies[i].entityType == ENTITY_PLAYER || enemies[i].entityType == ENTITY_NONE || enemies[i].entityState == STATE_INACTIVE) continue;
             if (CheckCollisionRecs(player->collisionRect, enemies[i].collisionRect) && enemies[i].entityState != STATE_HURT)
             {
                 TakeDamage(&enemies[i],5);
@@ -315,7 +316,7 @@ void ProcessCustomMapLoop(Camera2D* camera, MapEditor* mapEditor, GameState* gam
         if (mapEditor->entities[i].entityType == ENTITY_PLAYER)
         {
             PlayerMovement(mapEditor->player);
-            HandlePlayerAttack(mapEditor->player,mapEditor->entities);
+            HandlePlayerAttack(mapEditor->player,mapEditor->entities,mapEditor->entityCount);
             UpdateCharacterCamera(camera,mapEditor->player);
             HandlePlayerInteraction(mapEditor->player,mapEditor);
         }
