@@ -31,8 +31,10 @@ typedef enum ENTITY_TYPE
     ENTITY_PLAYER,
     ENTITY_ORC,
     ENTITY_SKELLETON,
+    
 
-    ENTITY_TOTAL
+    ENTITY_TOTAL,
+    ENTITY_NONE,  // Used to skip iteration on custom map init
     
 }ENTITY_TYPE;
 
@@ -100,6 +102,8 @@ typedef struct Character{
     Rectangle collisionRect;
     int maxHealth;
     int health;
+    int editorTileX; // Used to keep track of the tile index in which they are added in the editor
+    int editorTileY;
     bool rotated;
     bool inAttackRange; // Used to determine whcih enemies are within range
 }Character;

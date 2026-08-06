@@ -13,7 +13,7 @@ int InitAnimation(Animation* animation, const char* path, int frameNumber)
     animation->frameCounter = 0;
     // (Rectangle) is a compound literal aka a temporary struct i can create to them assign it to the frameRect
     animation->frameRect = (Rectangle){0.0f,0.0f,(float)animation->texture.width/frameNumber,(float)animation->texture.height};
-    animation->frameSpeed = 6;
+    animation->frameSpeed = 8;
     animation->frameNum = frameNumber;
     animation->frameWidth = (float)animation->texture.width/animation->frameNum;
     animation->rotated = false;
