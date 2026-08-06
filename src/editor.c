@@ -365,36 +365,9 @@ void DrawCustomMapEntities(MapEditor* mapEditor)
 }
 void HandleCustomMapCollision(MapEditor* mapEditor, Character* entity, Rectangle window)
 {
-    Element element;
-    for(int i = 0; i < MAPWIDTH; i++)
-        {
-            for(int g = 0; g < MAPLEN; g++)
-            {
-                bool collisionObject = IsCollisionObject(mapEditor->map[0][i][g]);
-                 element.dest = (Rectangle){
-                    window.x + g * TILESIZE,
-                    window.y + i * TILESIZE,
-                    TILESIZE,
-                    TILESIZE
-                };
-
-                if (!collisionObject && entity->entityType == ENTITY_PLAYER)
-                {
-                    bool characterInTile = CheckCollisionPointRec((Vector2)
-                        {entity->collisionRect.x + entity->collisionRect.width/2.0f,
-                        entity->collisionRect.y + entity->collisionRect.height/2.0f},
-                            element.dest);
-                    if (!characterInTile) continue;
-                    UpdateTileIndex(entity,g,i);
-                }
-                else
-                {
-                    bool collision = CheckCollisionRecs(element.dest,entity->collisionRect);
-                    if (!collision) continue;
-                    HandleCollisionDirection(&element,entity);
-                }   
-            }
-        }
+    if (mapEditor == NULL || entity == NULL) return;
+    UpdateTileIndex(entity,mapEditor,window);
+    HandleNearbyCollisions(entity,mapEditor,window);
 }
 
 bool IsCollisionObject(int index)
@@ -436,19 +409,23 @@ bool IsCollisionObject(int index)
         case RIGHT_DOOR_3:
         case RIGHT_DOOR_4:
             return true;
-            break;
         default:
             return false;
     }
     return false;
 }
 
-void UpdateTileIndex(Character* entity, int x, int y)
+void UpdateTileIndex(Character* entity, MapEditor* mapEditor, Rectangle window)
 {
-    if (entity == NULL) return;
-    if (entity->editorTileX == x && entity->editorTileY == y) return;
-    entity->editorTileX = x;
-    entity->editorTileY = y;
+    entity->editorTileX =
+        (int)((entity->collisionRect.x +
+            entity->collisionRect.width * 0.5f -
+            window.x) / TILESIZE);
+
+    entity->editorTileY =
+        (int)((entity->collisionRect.y +
+            entity->collisionRect.height * 0.5f -
+            window.y) / TILESIZE);
 }
 
 void HandlePlayerInteraction(Character* entity, MapEditor* mapEditor)
@@ -465,5 +442,34 @@ void HandlePlayerInteraction(Character* entity, MapEditor* mapEditor)
 void HandleDoorInteraction(Character* entity, MapEditor* mapEditor)
 {
     if (entity == NULL || mapEditor == NULL) return;
+    
     return;
 }
+void HandleNearbyCollisions(Character* entity, MapEditor* mapEditor, Rectangle window)
+{
+    Element element;
+    element.dest = (Rectangle){-1,-1,0,0};
+    for (int layer = 0; layer <= 1; layer++)
+    {
+        for (int i = -1 ; i <= 1; i++)
+        {
+            for (int g = -1; g<= 1; g++)
+            {
+                int currentX = entity->editorTileX + g;
+                int currentY = entity->editorTileY + i;
+                if (currentX < 0 || currentX >= MAPWIDTH) continue;
+                if (currentY < 0 || currentY >= MAPLEN) continue;
+                if (!IsCollisionObject(mapEditor->map[layer][currentY][currentX])) continue;
+                Rectangle tileRect = {
+                    window.x + currentX * TILESIZE,
+                    window.y + currentY * TILESIZE,
+                    TILESIZE,
+                    TILESIZE
+                };
+                if (!CheckCollisionRecs(tileRect,entity->collisionRect)) continue;
+                element.dest = tileRect;
+                HandleCollisionDirection(&element,entity);
+            }
+        }
+    }   
+} 
