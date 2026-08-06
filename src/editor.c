@@ -41,10 +41,10 @@ int InitEntityTileset(MapEditor* mapEditor)
     - Then we draw to the screen both panels
     - See the documentation for DrawTileSelector and DrawMainPanel below
 */
-void ProcessEditor(MapEditor* mapEditor, Rectangle window) // We pass the window rectangle by value since we don't actually want to change its value
+void ProcessEditor(MapEditor* mapEditor, Rectangle* window) // We pass the window rectangle by value since we don't actually want to change its value
 {
     if (mapEditor == NULL) return;
-    GetEidtorPanels(window,mapEditor);
+    GetEidtorPanels(*window,mapEditor);
     ClearBackground((Color){37,19,26,255});
     DrawRectangleRec(mapEditor->sidePanel,(Color){51,0,0,255});
     DrawRectangleRec(mapEditor->mainPanel, (Color){0,0,51,255});
@@ -160,9 +160,9 @@ void HandleTileSelection(Rectangle* tile, int tileIndex, MapEditor* mapEditor)
 void DrawMainPanel(MapEditor* mapEditor)
 {
     if (mapEditor == NULL) return;
-    float tileWidth = mapEditor->mainPanel.width/MAPWIDTH;
-    float tileLen = mapEditor->mainPanel.height/MAPLEN;  
-    float tileSize = fminf(tileWidth,tileLen);
+    float tileWidth = mapEditor->mainPanel.width/MAPLEN;
+    float tileheight = mapEditor->mainPanel.height/MAPWIDTH;  
+    float tileSize = fminf(tileWidth,tileheight);
     //float tileSize = mapEditor->mainPanel.width/MAPLEN;
     for (int layer = 0; layer < 3; layer++)
     {
@@ -211,20 +211,30 @@ void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile)
     {
         if(CheckCollisionPointRec(GetMousePosition(), *tile) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            if (mapEditor->map[mapEditor->drawLayer][y][x] == mapEditor->selectedTileIndex) return;
+            if (mapEditor->map[mapEditor->drawLayer][y][x] == mapEditor->selectedTileIndex) return; // Done to prevent multiple additions with a single click
             mapEditor->map[mapEditor->drawLayer][y][x] = mapEditor->selectedTileIndex;
-            AddEntity(mapEditor,tile);
+            AddEntity(mapEditor,x,y);
             printf("Entity Count: %d",mapEditor->entityCount);
+            return;
+        }
+
+        if (CheckCollisionPointRec(GetMousePosition(),*tile) && IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+        {
+            for (int i = 0; i < mapEditor->entityCount; i++)
+            {
+                if (mapEditor->entities[i].editorTileX == x && mapEditor->entities[i].editorTileY == y)
+                {
+                    mapEditor->entities[i].entityState = STATE_INACTIVE;
+                    mapEditor->entities[i].entityType = ENTITY_NONE;
+                    mapEditor->map[mapEditor->drawLayer][y][x] = -1;
+                    return;
+                }
+            }
         }
          
     }
     
 }
-
-// void HandlePlaceEntity(MapEditor* mapEditor, int x, int y, Rectangle* tile)
-// {
-//     return;
-// }
 
 void HandleSelectLayer(MapEditor *mapEditor)
 {
@@ -253,19 +263,19 @@ void DeinitEditor(MapEditor* MapEditor)
     MapEditor->entityTile = NULL;
 }
 
-// We subtract the Character texture size from the positon to compensate for the targe bkacground the sprites have
-// Each frame is 100x100 pixels while the spirtes are 25x20
-void AddEntity(MapEditor* mapEditor, Rectangle* tile)
-{
-    if (mapEditor == NULL || tile == NULL) return;
+/*I store the index the array i am using as a map in order to then multiply said index by tilesize and thus getting the
+in screen position I need*/
+void AddEntity(MapEditor* mapEditor,int x, int y)
+{   
+    if (mapEditor == NULL) return;
     if (mapEditor->entityCount > MAXENTITIES) return;
     switch (mapEditor->selectedTileIndex)
     {
     case ENTITY_PLAYER:
         if(mapEditor->playerInGame) break;
         mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_PLAYER;
-        mapEditor->entities[mapEditor->entityCount].Postion.x = tile->x - mapEditor->sidePanel.width - CHARACTER_TEXTURE_SIZE;
-        mapEditor->entities[mapEditor->entityCount].Postion.y = tile->y - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].editorTileX = x;
+        mapEditor->entities[mapEditor->entityCount].editorTileY = y;
         mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
         mapEditor->playerInGame = true;
         mapEditor->player = &mapEditor->entities[mapEditor->entityCount];
@@ -273,15 +283,15 @@ void AddEntity(MapEditor* mapEditor, Rectangle* tile)
         break;
     case ENTITY_ORC:
         mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_ORC;
-        mapEditor->entities[mapEditor->entityCount].Postion.x = tile->x - mapEditor->sidePanel.width - CHARACTER_TEXTURE_SIZE;
-        mapEditor->entities[mapEditor->entityCount].Postion.y = tile->y - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].editorTileX = x;
+        mapEditor->entities[mapEditor->entityCount].editorTileY = y;
         mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
         mapEditor->entityCount ++;
         break;
     case ENTITY_SKELLETON:
         mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_ORC;
-        mapEditor->entities[mapEditor->entityCount].Postion.x = tile->x - mapEditor->sidePanel.width - CHARACTER_TEXTURE_SIZE;
-        mapEditor->entities[mapEditor->entityCount].Postion.y = tile->y - CHARACTER_TEXTURE_SIZE;
+        mapEditor->entities[mapEditor->entityCount].editorTileX = x;
+        mapEditor->entities[mapEditor->entityCount].editorTileY = y;
         mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
         mapEditor->entityCount ++;
         break;
@@ -297,17 +307,21 @@ int InitCustomMap(GameState* gameState, MapEditor* mapEditor, Graphics* knightGr
 
     for(int i = 0; i < mapEditor->entityCount; i++)
     {
+        float x = (float)mapEditor->entities[i].editorTileX * TILESIZE - CHARACTER_TEXTURE_SIZE/2;
+        float y = (float)mapEditor->entities[i].editorTileY * TILESIZE - CHARACTER_TEXTURE_SIZE/2;
         switch (mapEditor->entities[i].entityType)
         {
         case ENTITY_PLAYER:
-            InitPlayer(&mapEditor->entities[i],knightGraphics,mapEditor->entities[i].Postion.x,mapEditor->entities[i].Postion.y);
+            InitPlayer(&mapEditor->entities[i],knightGraphics,x,y);
             break;
         case ENTITY_ORC:
-            InitEnemy(&mapEditor->entities[i],ENTITY_ORC,orcGraphics,mapEditor->entities[i].Postion.x,mapEditor->entities[i].Postion.y);
+            InitEnemy(&mapEditor->entities[i],ENTITY_ORC,orcGraphics,x,y);
             break;
         case ENTITY_SKELLETON:
-            InitEnemy(&mapEditor->entities[i],ENTITY_SKELLETON,skelletonGraphics,mapEditor->entities[i].Postion.x,mapEditor->entities[i].Postion.y);
+            InitEnemy(&mapEditor->entities[i],ENTITY_SKELLETON,skelletonGraphics,x,y);
             break;
+        case ENTITY_NONE:
+            continue;
         default:
             break;
         }
@@ -345,6 +359,67 @@ void DrawCustomMapEntities(MapEditor* mapEditor)
 {
     for (int i = 0 ; i < mapEditor->entityCount; i++)
     {
+        if (mapEditor->entities[i].entityState == STATE_INACTIVE) continue;
         DrawTextureRec(mapEditor->entities[i].animation->texture,HandleCharacterRotation(&mapEditor->entities[i]),mapEditor->entities[i].Postion,WHITE);
     }
+}
+void HandleCustomMapCollision(MapEditor* mapEditor, Character* entity, Rectangle window)
+{
+    Element element;
+    for(int i = 0; i < MAPWIDTH; i++)
+        {
+            for(int g = 0; g < MAPLEN; g++)
+            {
+                bool collisionObject = IsCollisionObject(mapEditor->map[0][i][g]);
+                if (!collisionObject) continue;
+
+
+                element.dest = (Rectangle){
+                    window.x + g * TILESIZE,
+                    window.y + i * TILESIZE,
+                    TILESIZE,
+                    TILESIZE
+                };
+                
+                bool collision = CheckCollisionRecs(element.dest,entity->collisionRect);
+                if (!collision) continue;
+                HandleCollisionDirection(&element,entity);
+            }
+        }
+}
+
+bool IsCollisionObject(int index)
+{
+    switch (index)
+    {
+        case WALL_FRONT_1:
+        case WALL_FRONT_2:
+        case WALL_FRONT_3:
+        case WALL_FRONT_4:
+        case WALL_LEFT_1:
+        case WALL_LEFT_2:
+        case WALL_LEFT_3:
+        case WALL_LEFT_4:
+        case BACK_WALL_1:
+        case BACK_WALL_2:
+        case BACK_WALL_3:
+        case BACK_WALL_4:
+        case BACK_WALL_5:
+        case BACK_WALL_6:
+        case LEFT_CORNER_WALL:
+        case RIGHT_CORNER_WALL:
+        case TOP_LEFT_CORNER_WALL_1:
+        case TOP_LEFT_CORNER_WALL_2:
+        case TOP_RIGHT_CORNER_WALL_1:
+        case TOP_RIGHT_CORNER_WALL_2:
+        case WALL_RIGHT_1:
+        case WALL_RIGHT_2:
+        case WALL_RIGHT_3:
+        case WALL_RIGHT_4:
+            return true;
+            break;
+        default:
+            return false;
+    }
+    return false;
 }

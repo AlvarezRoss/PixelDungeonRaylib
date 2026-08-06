@@ -30,7 +30,7 @@ typedef struct MapEditor
 
 int InitEditor(TileSet* tileSet,MapEditor* mapEditor, float mainPanelPosition);
 int InitEntityTileset(MapEditor* mapEditor);
-void ProcessEditor(MapEditor* mapEditor,Rectangle window);
+void ProcessEditor(MapEditor* mapEditor,Rectangle* window);
 void GetEidtorPanels(Rectangle window, MapEditor* mapEditor);
 void DrawTileSelector(MapEditor* mapEditor);
 void DrawEntitySelector(MapEditor* mapEditor);
@@ -39,8 +39,10 @@ void DrawMainPanel(MapEditor* mapEditor);
 void HandlePlaceTile(MapEditor* mapEditor, int x, int y, Rectangle* tile);
 void HandleSelectLayer(MapEditor *mapEditor);
 void DeinitEditor(MapEditor* MapEditor);
-void AddEntity(MapEditor* mapEditor, Rectangle* tile);
+void AddEntity(MapEditor* mapEditor, int x, int y);
 int InitCustomMap(GameState* gameState, MapEditor* mapEditor, Graphics* knightGraphics, Graphics* orcGraphics, Graphics* skelletonGraphics);
 void DrawCustomMap(MapEditor* mapEditor, GameState* gameState, Rectangle window);
 void DrawCustomMapEntities(MapEditor* mapEditor);
+void HandleCustomMapCollision(MapEditor* mapEditor, Character* entity, Rectangle window);
+bool IsCollisionObject(int index);
 #endif
