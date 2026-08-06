@@ -234,6 +234,8 @@ int InitPlayer(Character* player, Graphics* graphics, float x, float y)
     player->attackTimer = NULL;
     player->Postion.x = x;
     player->Postion.y = y;
+    player->hasDoorKey = false;
+    player->interatcionRect = (Rectangle){player->animation->frameRect.width/2,player->animation->frameRect.height/2,SPRITELEN*2,SPRITEHEIGHT*2};
     return 0;
 }
 

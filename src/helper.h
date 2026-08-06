@@ -100,12 +100,14 @@ typedef struct Character{
     Area detectionArea; // Used only for enemies
     Vector2 speed;
     Rectangle collisionRect;
+    Rectangle interatcionRect; // Used to interact with collision objects that can be removed like doors
     int maxHealth;
     int health;
     int editorTileX; // Used to keep track of the tile index in which they are added in the editor
     int editorTileY;
     bool rotated;
     bool inAttackRange; // Used to determine whcih enemies are within range
+    bool hasDoorKey;
 }Character;
 
 
