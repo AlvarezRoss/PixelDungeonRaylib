@@ -1,5 +1,11 @@
 Pending todos:
 
+-- The most pending thing right now is cleanup.
+    - I started this project as just a game before trying to decouple my systems to make the framework.
+    - This means that I drew and processed what i now call "Test map" before I even though about making a framework or working on the editor.
+    - This has resulted in a lot of repeted logic to process and draw the original map and now the maps made in the editor.
+    - I should unify everything into the way the editor is drawn
+
 Features:
     - Level change.
     - Enemy spawn.
@@ -17,14 +23,12 @@ Features:
 
 
 Refactoring:
-    - Maps:
-        - Insted of having the maps in the global space the draw function and collision function should take the maps
-            as a pointer to allow different maps to be loaded.
-
+    - Maps: 
+        - Unify the way in which maps are drawn.
+    - Processing:
+        - Unify the way in which the game loop is processed
 
 Level edtitor:
-    - The level editor is "functional" I just need to a way to let the player use the created map.
-    - Adding enemies to the map
     - FINISH THE DOCUMENTATION!!!!!!
 
 Fixes:
