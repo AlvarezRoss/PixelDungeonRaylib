@@ -181,7 +181,7 @@ void DrawObjectLayer(LevelData* levelData, TileSet* tileSet, Character* player)
             }
             element.dest = (Rectangle){currentPosition.x,currentPosition.y,TILESIZE,TILESIZE};
             DrawTexturePro(tileSet->map,element.src,element.dest,(Vector2){0,0},0.0f,WHITE);
-            HandlePlayerInteraction(&element,player,i,g);
+            HandleTestPlayerInteraction(&element,player,i,g);
             currentPosition.x += TILESIZE;
         }
         currentPosition.y += TILESIZE;
@@ -246,7 +246,7 @@ void HandleCollisionDirection(Element* element, Character* character)
 
     return;
 }
-void HandlePlayerInteraction(Element* element, Character* player, int x, int y)
+void HandleTestPlayerInteraction(Element* element, Character* player, int x, int y)
 {
     if (element == NULL || player == NULL) return;
     if (!IsKeyPressed(KEY_E)) return;

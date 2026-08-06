@@ -188,7 +188,7 @@ void DrawGroundLayer(LevelData* levelData, TileSet* tileSet);
 void HandleGroundCollision(LevelData* levelData, TileSet* tileSet, Character* character);
 void HandleCollisionDirection(Element* element, Character* character);
 void DrawObjectLayer(LevelData* levelData, TileSet* tileSet, Character* player);
-void HandlePlayerInteraction(Element* element, Character* player, int x, int y);
+void HandleTestPlayerInteraction(Element* element, Character* player, int x, int y);
 bool CheckCollisionObject(int x, int y);
 Rectangle GetTileSrcRect(TILES tile);
 
