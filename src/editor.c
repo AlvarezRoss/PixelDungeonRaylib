@@ -289,7 +289,7 @@ void AddEntity(MapEditor* mapEditor,int x, int y)
         mapEditor->entityCount ++;
         break;
     case ENTITY_SKELLETON:
-        mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_ORC;
+        mapEditor->entities[mapEditor->entityCount].entityType = ENTITY_SKELLETON;
         mapEditor->entities[mapEditor->entityCount].editorTileX = x;
         mapEditor->entities[mapEditor->entityCount].editorTileY = y;
         mapEditor->entities[mapEditor->entityCount].entityState = STATE_IDLE;
